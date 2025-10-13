@@ -3,6 +3,9 @@ This project aims to provide a way to modify the files of ObsCure.
 
 # Usage
 ## IT Format
+All the item IDs, item locations, extra_infos, multipliers and diff_modes must
+be provided in their hexadecimal representation without spaces.
+
 Add an item to an `.it` file:
 ```
 ObsCureFileParser --it-add <path_src> <item_id> <item_loc> <extra_info> \
