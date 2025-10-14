@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "file_write.h"
 #include "utils.h"
 
 uint32_t get_first_number(FILE *file)
@@ -285,6 +286,7 @@ int check_item(FILE *room_file, uint64_t item)
 }
 */
 
+// TODO: be able to tell if the file is NOT a tm file
 tm_file *parse_tm_file(char *path)
 {
     FILE *file = fopen(path, "r+b");
@@ -363,7 +365,7 @@ tm_file *parse_tm_file(char *path)
         if (!content)
         {
             fclose(file);
-            free_tm_file(tm);
+            //free_tm_file(tm);
             return NULL;
         }
 
@@ -375,10 +377,31 @@ tm_file *parse_tm_file(char *path)
     tm->sections = sections;
     tm->len_item_sections = len_item_sections;
     tm->items = item_sections;
+    return tm;
+}
+
+size_t search_item_loc_tm(tm_file *tm, uint32_t item_loc)
+{
+    tm_item_section *items = tm->items;
+    size_t len_item_sections = tm->len_item_sections;
+
+    size_t i = 0;
+    while (i < len_item_sections && items[i].item_location != item_loc)
+    {
+        i++;
+    }
+
+    return i;
 }
 
 int add_item_to_tm(tm_file *tm, tm_item_section *item)
 {
+    if (search_item_loc_tm(tm, item->item_location) != tm->len_item_sections)
+    {
+        fprintf(stderr, "ERROR: Can't add item, item_loc %06X is already present\n", item->item_location);
+        return 1;
+    }
+
     size_t len_item_sections = tm->len_item_sections;
     len_item_sections++;
 
@@ -414,6 +437,72 @@ int add_item_to_tm(tm_file *tm, tm_item_section *item)
     return 0;
 }
 
+int remove_item_from_tm(tm_file *tm, uint32_t item_loc)
+{
+    //
+    tm_item_section *items = tm->items;
+    size_t len_item_sections = tm->len_item_sections;
+
+    size_t i = search_item_loc_tm(tm, item_loc);
+
+    if (i == len_item_sections)
+    {
+        fprintf(stderr, "ERROR: Couldn't find item with loc %06X\n", item_loc);
+        return 1;
+    }
+
+    if (i == len_item_sections)
+    {
+        fprintf(stderr, "ERROR: Couldn't find item with loc %06X\n", item_loc);
+        return 1;
+    }
+
+    for (size_t j = i; j < len_item_sections - 1; j++)
+    {
+        items[j] = items[j + 1];
+    }
+
+    len_item_sections--;
+
+    items = realloc(tm->items, sizeof(tm_item_section) * len_item_sections);
+    if (!items)
+    {
+        // TODO: Don't realloc yet? vector implementation
+        // TODO: LOST DATA
+        fprintf(stderr, "Couldn't realloc items (LOST DATA)\n");
+        return 1;
+    }
+
+    tm->items = items;
+    tm->len_item_sections = len_item_sections;
+
+    return 0;
+}
+
+int serialize_generic_section(tm_generic_section *section, FILE *file)
+{
+    write_4byte_msb(file, section->type);
+    //write_4byte_msb(file, section->len_content);
+    write_array(file, section->content, section->len_content);
+}
+
+int serialize_item_section(tm_item_section *item, FILE *file)
+{
+    write_4byte_msb(file, item->type);
+    write_4byte_msb(file, item->len_content);
+    write_4byte_msb(file, item->item_id);
+    write_4byte_msb(file, item->item_location);
+    write_4byte_msb(file, item->x_pos);
+    write_4byte_msb(file, item->y_pos);
+    write_4byte_msb(file, item->z_pos);
+    write_4byte_msb(file, item->x_rot);
+    write_4byte_msb(file, item->y_rot);
+    write_4byte_msb(file, item->z_rot);
+    write_array(file, item->unknown, 24);
+    write_4byte_msb(file, item->len_info_diff);
+    write_array(file, item->info_diff, item->len_info_diff);
+}
+
 // TODO: to finish
 int serialize_tm_file(tm_file *tm, char *path)
 {
@@ -429,27 +518,27 @@ int serialize_tm_file(tm_file *tm, char *path)
     tm_generic_section *sections = tm->sections;
     size_t len_sections = tm->len_sections;
 
-    for (size_t i = 0; i < len_sections; i++)
+    size_t i = 0;
+    while (i < len_sections && sections[i].type < 8)
     {
         // serialize each section between 1 and 7
+        serialize_generic_section(sections + i, new_file);
+        i++;
     }
-
 
     tm_item_section *items = tm->items;
     size_t len_item_sections = tm->len_item_sections;
 
-    for (size_t i = 0; i < len_sections; i++)
+    for (size_t i = 0; i < len_item_sections; i++)
     {
         // serialize all items (8)
+        serialize_item_section(items + i, new_file);
     }
 
-
-    tm_generic_section *sections = tm->sections;
-    size_t len_sections = tm->len_sections;
-
-    for (size_t i = 0; i < len_sections; i++)
+    for (size_t j = i; j < len_sections; j++)
     {
         // serialize each sections > 8
+        serialize_generic_section(sections + i, new_file);
     }
 
     fclose(new_file);
@@ -462,11 +551,18 @@ void free_tm_file(tm_file *tm)
     size_t len_sections = tm->len_sections;
     for (size_t i = 0; i < len_sections; i++)
     {
-        free(p->content);
+        free(p[i].content);
     }
 
     free(tm->sections);
     // TODO: free items
+    tm_item_section *p2 = tm->items;
+    size_t len_item_sections = tm->len_item_sections;
+    for (size_t i = 0; i < len_item_sections; i++)
+    {
+        free(p2[i].info_diff);
+    }
+    free(tm->items);
 }
 
 void print_tm_generic_section(tm_generic_section *tm_sec)

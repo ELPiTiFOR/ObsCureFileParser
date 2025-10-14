@@ -72,8 +72,9 @@ int goto_next_section_tm_file(FILE *file);
 tm_file *parse_tm_file(char *path);
 
 int add_item_to_tm(tm_file *tm, tm_item_section *item);
+int remove_item_from_tm(tm_file *tm, uint32_t item_loc);
 
-void serialize_tm_file(tm_file *tm);
+int serialize_tm_file(tm_file *tm, char *path);
 
 void print_tm_file(tm_file *tm);
 void free_tm_file(tm_file *tm);

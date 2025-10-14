@@ -12,4 +12,6 @@ void write_4byte_lsb(FILE *file, uint32_t u);
 // if the given integer is `AA BB CC DD` the result will be `AA BB CC DD`
 void write_4byte_msb(FILE *file, uint32_t u);
 
+void write_array(FILE *file, uint8_t *arr, uint32_t len);
+
 #endif /* !FILE_WRITE_H */

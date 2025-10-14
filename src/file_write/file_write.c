@@ -17,3 +17,8 @@ void write_4byte_msb(FILE *file, uint32_t u)
 
     fwrite(buf, 1, 4, file);
 }
+
+void write_array(FILE *file, uint8_t *arr, uint32_t len)
+{
+    fwrite(arr, 1, len, file);
+}

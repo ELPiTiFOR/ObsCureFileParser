@@ -52,6 +52,24 @@ int execute_commands(int argc, char **argv)
     for (int i = 0; i < argc; i++)
     {
         // 1: path
+        if (strcmp(argv[i], "--it-parse") == 0 && argc > i + 1)
+        {
+            if (argc > i + 1)
+            {
+                if (parse_it_file_b(argv, i))
+                {
+                    fprintf(stderr, "ERROR: Couldn't parse `.it` file b\n");
+                }
+
+                i++;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: Provide everything\n");
+            }
+        }
+
+        // 1: path
         // 2: item_id
         // 3: item_loc
         // 4: extra_info
@@ -99,6 +117,54 @@ int execute_commands(int argc, char **argv)
             if (argc > i + 1)
             {
                 if (parse_tm_file_b(argv, i))
+                {
+                    fprintf(stderr, "ERROR: Couldn't parse `.tm` file b\n");
+                }
+
+                i++;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: Provide everything\n");
+            }
+        }
+        //  1: path
+        //  2: path2
+        //  2: item id
+        //  3: item loc
+        //  4: x pos
+        //  5: y pos
+        //  6: z pos
+        //  7: x rot
+        //  8: y rot
+        //  9: z rot
+        // 10: diff_mode string
+        // 11: path2
+        if (strcmp(argv[i], "--tm-add") == 0)
+        {
+            if (argc > i + 11)
+            {
+                if (add_item_to_tm_b(argv, i))
+                {
+                    fprintf(stderr, "ERROR: Couldn't parse `.tm` file b\n");
+                }
+
+                i++;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: Provide everything\n");
+            }
+        }
+        
+        // 1: path
+        // 2: item_loc
+        // 3: path2
+        if (strcmp(argv[i], "--tm-remove") == 0)
+        {
+            if (argc > i + 3)
+            {
+                if (remove_item_from_tm_b(argv, i))
                 {
                     fprintf(stderr, "ERROR: Couldn't parse `.tm` file b\n");
                 }
