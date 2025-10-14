@@ -5,6 +5,7 @@ CPPFLAGS = \
 	-Isrc \
 	-Isrc/utils \
 	-Isrc/it_file \
+	-Isrc/tm_file \
 	-Isrc/file_read \
 	-Isrc/file_write \
 
@@ -14,6 +15,7 @@ SRC = \
 	src/main.c \
 	src/utils/utils.c \
 	src/it_file/it_file.c \
+	src/tm_file/tm_file.c \
 	src/file_read/file_read.c \
 	src/file_write/file_write.c \
 	src/commands.c \
