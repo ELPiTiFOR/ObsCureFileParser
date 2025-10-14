@@ -427,7 +427,7 @@ int add_item_to_tm(tm_file *tm, tm_item_section *item)
     }
 
     item->type = 8;
-    item->len_content = 16 + item->len_info_diff;
+    item->len_content = 64 + item->len_info_diff;
     item->info_diff = info_diff;
 
     items[len_item_sections - 1] = *item;
