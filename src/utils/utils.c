@@ -93,3 +93,17 @@ uint32_t my_atoi_base(char *str, int base)
 
     return res;
 }
+
+uint32_t buf_to_long(uint8_t *buf)
+{
+    uint32_t res = 0;
+    //printf("res = %d\n", res);
+    for (size_t i = 0; i < 4; i++)
+    {
+        res = res << 8;
+        res |= buf[i];
+        //printf("res = %d\n", res);
+    }
+
+    return res;
+}

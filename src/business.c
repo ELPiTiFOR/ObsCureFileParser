@@ -1,6 +1,7 @@
 #include "business.h"
 
 #include "it_file.h"
+#include "tm_file.h"
 #include "utils.h"
 
 int add_item_to_it_b(char **argv, size_t i)
@@ -58,5 +59,41 @@ int remove_item_from_it_b(char **argv, size_t i)
         return 1;
     }
 
+    return 0;
+}
+
+int parse_tm_file_b(char **argv, size_t i)
+{
+    tm_file *tm = parse_tm_file(argv[i + 1]);
+    if (!tm)
+    {
+        return 1;
+    }
+
+    uint8_t info_diff[] = { 0x31, 0x2F, 0x31, 0x2F, 0x37, 0 };
+    tm_item_section item =
+    {
+        0, //
+        0, //
+        0x00CB,
+        0x020409,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        { 0 },
+        5,
+        info_diff,
+    };
+    if (add_item_to_tm(tm, &item))
+    {
+        fprintf(stderr, "ERROR: Couldn't add item to tm\n");
+        return 1;
+    }
+
+    print_tm_file(tm);
+    free_tm_file(tm);
     return 0;
 }

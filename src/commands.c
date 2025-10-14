@@ -66,6 +66,7 @@ int execute_commands(int argc, char **argv)
                 {
                     fprintf(stderr, "ERROR: Couldn't add item b\n");
                 }
+
                 i++;
             }
             else
@@ -84,6 +85,24 @@ int execute_commands(int argc, char **argv)
                 {
                     fprintf(stderr, "ERROR: Couldn't remove item b\n");
                 }
+
+                i++;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: Provide everything\n");
+            }
+        }
+        // 1: path
+        if (strcmp(argv[i], "--tm-parse") == 0 && argc > i + 1)
+        {
+            if (argc > i + 1)
+            {
+                if (parse_tm_file_b(argv, i))
+                {
+                    fprintf(stderr, "ERROR: Couldn't parse `.tm` file b\n");
+                }
+
                 i++;
             }
             else
