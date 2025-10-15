@@ -24,6 +24,7 @@ it_item *parse_it_item(FILE *file);
 it_file *parse_it_file(char *path);
 
 int add_item_to_it(it_file *it, it_item *item);
+int edit_item_in_it(it_file *it, it_item *item);
 int remove_item_from_it(it_file *it, uint32_t item_loc);
 
 int serialize_it_file(it_file *it, char *path);
