@@ -239,6 +239,23 @@ int execute_commands(int argc, char **argv)
                 fprintf(stderr, "ERROR: Provide everything\n");
             }
         }
+        // 1: path
+        if (strcmp(argv[i], "--sav-parse") == 0)
+        {
+            if (argc > i + 1)
+            {
+                if (parse_sav_file_b(argv, i))
+                {
+                    fprintf(stderr, "ERROR: Couldn't parse `.sav` file b\n");
+                }
+
+                i++;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: Provide everything\n");
+            }
+        }
     }
     return 0;
 }

@@ -5,6 +5,7 @@
 
 #include "it_file.h"
 #include "tm_file.h"
+#include "sav_file.h"
 #include "utils.h"
 
 int parse_it_file_b(char **argv, size_t i)
@@ -303,5 +304,19 @@ int remove_item_from_tm_b(char **argv, size_t i)
 
     print_tm_file(tm);
     free_tm_file(tm);
+    return 0;
+}
+
+int parse_sav_file_b(char **argv, size_t i)
+{
+    sav_file *sav = parse_sav_file(argv[i + 1]);
+    if (!sav)
+    {
+        fprintf(stderr, "ERROR: Couldn't parse sav file\n");
+        return 1;
+    }
+
+    print_sav_file(sav);
+
     return 0;
 }

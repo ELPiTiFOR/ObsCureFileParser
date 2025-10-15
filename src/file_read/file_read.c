@@ -32,3 +32,14 @@ uint32_t read_4byte_msb(FILE *file, size_t *read)
 
     return res;
 }
+
+uint8_t read_1byte(FILE *file, size_t *read)
+{
+    uint8_t buf[1];
+    if ((*read = fread(buf, 1, 1, file)) == 0)
+    {
+        return 0;
+    }
+
+    return buf[0];
+}
