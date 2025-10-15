@@ -1,6 +1,8 @@
 #include "utils.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 uint32_t uint32_t_revert(uint32_t u)
 {
@@ -29,6 +31,17 @@ void fill_buf_uint32_lsb(uint32_t u, char *buf)
     void *buf_v = buf;
     uint32_t *buf_u = buf_v;
     buf_u[0] = u;
+}
+
+void fill_buf_float_msb(float f, char *buf)
+{
+    void *f_v = &f;
+    uint8_t *f_c = f_v;
+
+    for (size_t i = 0; i < 4; i++)
+    {
+        buf[i] = f_c[3 - i];
+    }
 }
 
 int get_value_from_char_base(char c, int base)
@@ -106,4 +119,70 @@ uint32_t buf_to_long(uint8_t *buf)
     }
 
     return res;
+}
+
+// returns a new heap allocated string equal in content to `str`
+char *duplicate_string(char *str)
+{
+    size_t len = strlen(str);
+    char *res = calloc(len + 1, 1);
+    if (!res)
+    {
+        fprintf(stderr, "Couldn't calloc() %s\n", str);
+        return NULL;
+    }
+
+    strcpy(res, str);
+    return res;
+}
+
+float buf_to_float(uint8_t *buf, size_t len)
+{
+    if (len != 4)
+    {
+        fprintf(stderr, "ERROR: given buf is not 4 bytes long, can't convert to float\n");
+        return 0.0;
+    }
+
+    uint8_t buf_lsb[4];
+    for (size_t i = 0; i < 4; i++)
+    {
+        buf_lsb[i] = buf[3 - i];
+    }
+    /*
+    for (size_t i = 0; i < 4; i++)
+    {
+        printf("buf_to_float: buf_lsb[%zu] = %02X\n", i, buf_lsb[i]);
+    }
+    */
+
+    void *buf_lsb_v = buf_lsb;
+    float *buf_lsb_f = buf_lsb_v;
+    return *buf_lsb_f;
+}
+
+float str_to_float(uint8_t *str, size_t len)
+{
+    if (len != 8)
+    {
+        fprintf(stderr, "ERROR: given str is not 8 chars long (%zu | %s), can't convert to float\n", len, str);
+        return 0.0;
+    }
+
+    uint8_t buf_lsb[4];
+    for (size_t i = 0; i < 4; i++)
+    {
+        buf_lsb[3 - i] = get_value_from_char_base(str[i * 2], 16) * 16 + get_value_from_char_base(str[i * 2 + 1], 16);
+    }
+
+    for (size_t i = 0; i < 4; i++)
+    {
+        printf("str_to_float: buf_lsb[%zu] = %02X\n", i, buf_lsb[i]);
+    }
+
+
+    void *buf_lsb_v = buf_lsb;
+    float *buf_lsb_f = buf_lsb_v;
+    //printf("INFO: given str is %zu chars long (%s | %f)\n", len, str, *buf_lsb_f);
+    return *buf_lsb_f;
 }

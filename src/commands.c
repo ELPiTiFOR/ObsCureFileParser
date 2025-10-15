@@ -93,6 +93,30 @@ int execute_commands(int argc, char **argv)
             }
         }
         // 1: path
+        // 2: item_id
+        // 3: item_loc
+        // 4: extra_info
+        // 5: multiplier
+        // 6: diff_mode
+        // 7: path2
+        if (strcmp(argv[i], "--it-edit") == 0 && argc > i + 1)
+        {
+            if (argc > i + 7)
+            {
+                if (edit_item_in_it_b(argv, i))
+                {
+                    fprintf(stderr, "ERROR: Couldn't edit item b\n");
+                }
+
+                i++;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: Provide everything\n");
+            }
+        }
+
+        // 1: path
         // 2: item_loc
         // 3: path2
         if (strcmp(argv[i], "--it-remove") == 0 && argc > i + 1)
@@ -129,24 +153,63 @@ int execute_commands(int argc, char **argv)
             }
         }
         //  1: path
-        //  2: path2
         //  2: item id
         //  3: item loc
         //  4: x pos
         //  5: y pos
         //  6: z pos
-        //  7: x rot
-        //  8: y rot
-        //  9: z rot
-        // 10: diff_mode string
-        // 11: path2
+        //  7: rot_matrix[0]
+        //  8: rot_matrix[1]
+        //  9: rot_matrix[2]
+        // 10: rot_matrix[3]
+        // 11: rot_matrix[4]
+        // 12: rot_matrix[5]
+        // 13: rot_matrix[6]
+        // 14: rot_matrix[7]
+        // 15: rot_matrix[8]
+        // 16: diff_mode string
+        // 17: path2
         if (strcmp(argv[i], "--tm-add") == 0)
         {
-            if (argc > i + 11)
+            if (argc > i + 17)
             {
                 if (add_item_to_tm_b(argv, i))
                 {
                     fprintf(stderr, "ERROR: Couldn't parse `.tm` file b\n");
+                }
+
+                i++;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: Provide everything\n");
+            }
+        }
+
+        //  1: path
+        //  2: item id
+        //  3: item loc
+        //  4: x pos
+        //  5: y pos
+        //  6: z pos
+        //  7: rot_matrix[0]
+        //  8: rot_matrix[1]
+        //  9: rot_matrix[2]
+        // 10: rot_matrix[3]
+        // 11: rot_matrix[4]
+        // 12: rot_matrix[5]
+        // 13: rot_matrix[6]
+        // 14: rot_matrix[7]
+        // 15: rot_matrix[8]
+        // 16: diff_mode string
+        // 17: path2
+        if (strcmp(argv[i], "--tm-edit") == 0)
+        {
+            if (argc > i + 17)
+            {
+                if (edit_item_in_tm_b(argv, i))
+                {
+                    fprintf(stderr, "ERROR: Couldn't edit `.tm` file b\n");
                 }
 
                 i++;

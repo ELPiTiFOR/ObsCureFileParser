@@ -26,6 +26,19 @@ uint32_t get_first_number(FILE *file)
     return res;
 }
 
+float get_first_number_f(FILE *file)
+{
+    uint8_t buf[4];
+    size_t r = fread(buf, 1, 4, file);
+    if (!r)
+    {
+        fprintf(stderr, "ERROR: Couldn't get first number\n");
+        return -1;
+    }
+
+    return buf_to_float(buf, 4);
+}
+
 long get_len_of_section_tm_file(FILE *file)
 {
     /*
@@ -88,16 +101,28 @@ int get_tm_item_section(FILE *tm_file, tm_item_section *item)
     item->x_pos = get_first_number(tm_file);
     item->y_pos = get_first_number(tm_file);
     item->z_pos = get_first_number(tm_file);
-    item->x_rot = get_first_number(tm_file);
-    item->y_rot = get_first_number(tm_file);
-    item->z_rot = get_first_number(tm_file);
+    /*
+    item->x_rot = get_first_number_f(tm_file);
+    item->y_rot = get_first_number_f(tm_file);
+    item->z_rot = get_first_number_f(tm_file);
+    */
 
+    for (size_t i = 0; i < 3; i++)
+    {
+        for (size_t j = 0; j < 3; j++)
+        {
+            item->rot_matrix[i][j] = get_first_number_f(tm_file);
+        }
+    }
+
+    /*
     uint8_t buf[24];
     fread(buf, 1, 24, tm_file);
     for (size_t i = 0; i < 24; i++)
     {
         item->unknown[i] = buf[i];
     }
+    */
 
     item->len_info_diff = get_first_number(tm_file);
 
@@ -204,10 +229,23 @@ void print_tm_item_section(tm_item_section *item)
     printf("    Y pos: %d\n", item->y_pos);
     printf("    Z pos: %d\n", item->z_pos);
 
-    printf("    X rot: %d\n", item->x_rot);
-    printf("    Y rot: %d\n", item->y_rot);
-    printf("    Z rot: %d\n", item->z_rot);
+    /*
+    printf("    X rot: %f\n", item->x_rot);
+    printf("    Y rot: %f\n", item->y_rot);
+    printf("    Z rot: %f\n", item->z_rot);
+    */
 
+    for (size_t i = 0; i < 3; i++)
+    {
+        printf("    [");
+        for (size_t j = 0; j < 3; j++)
+        {
+            printf("%9.3f ", item->rot_matrix[i][j]);
+        }
+        printf("]\n");
+    }
+
+    /*
     for (size_t i = 0; i < 24; i++)
     {
         if (i % 16 == 0)
@@ -222,7 +260,7 @@ void print_tm_item_section(tm_item_section *item)
             putchar('\n');
         }
     }
-    putchar('\n');
+    */
 
     printf("    Length of Info and Diff: %d\n", item->len_info_diff);
     uint32_t len_info_diff = item->len_info_diff;
@@ -437,6 +475,35 @@ int add_item_to_tm(tm_file *tm, tm_item_section *item)
     return 0;
 }
 
+int edit_item_in_tm(tm_file *tm, tm_item_section *item)
+{
+    size_t index = search_item_loc_tm(tm, item->item_location);
+    if (index == tm->len_item_sections)
+    {
+        fprintf(stderr, "ERROR: Can't edit item, item_loc %06X not found\n", item->item_location);
+        return 1;
+    }
+
+    if (strcmp(item->info_diff, tm->items[index].info_diff) == 0)
+    {
+        // if these strings are equal, no need to alloc a new one
+        item->info_diff = tm->items[index].info_diff;
+    }
+    else
+    {
+        free(tm->items[index].info_diff);
+        item->info_diff = duplicate_string(item->info_diff);
+    }
+
+    item->type = 8;
+    item->len_content = 64 + item->len_info_diff;
+    tm->items[index] = *item;
+    //print_tm_item_section(tm->items + index);
+
+    return 0;
+}
+
+
 int remove_item_from_tm(tm_file *tm, uint32_t item_loc)
 {
     //
@@ -495,10 +562,20 @@ int serialize_item_section(tm_item_section *item, FILE *file)
     write_4byte_msb(file, item->x_pos);
     write_4byte_msb(file, item->y_pos);
     write_4byte_msb(file, item->z_pos);
+    /*
     write_4byte_msb(file, item->x_rot);
     write_4byte_msb(file, item->y_rot);
     write_4byte_msb(file, item->z_rot);
-    write_array(file, item->unknown, 24);
+    */
+
+    for (size_t i = 0; i < 3; i++)
+    {
+        for (size_t j = 0; j < 3; j++)
+        {
+            write_4byte_float_msb(file, item->rot_matrix[i][j]);
+        }
+    }
+    //write_array(file, item->unknown, 24);
     write_4byte_msb(file, item->len_info_diff);
     write_array(file, item->info_diff, item->len_info_diff);
 }

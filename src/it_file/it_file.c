@@ -192,6 +192,20 @@ int add_item_to_it(it_file *it, it_item *item)
     return insert_item_to_it_at(it, new_item, index);
 }
 
+int edit_item_in_it(it_file *it, it_item *item)
+{
+    size_t index = search_item_loc(it, item->item_loc);
+    if (index == it->len_items)
+    {
+        fprintf(stderr, "ERROR: Couldn't find item %06X\n", item->item_loc);
+        return 1;
+    }
+
+    it->items[index][0] = *item;
+
+    return 0;
+}
+
 int remove_item_from_it(it_file *it, uint32_t item_loc)
 {
     size_t index = search_item_loc(it, item_loc);
