@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "file_read.h"
 #include "file_write.h"
 #include "utils.h"
 
@@ -24,19 +25,6 @@ uint32_t get_first_number(FILE *file)
     }
 
     return res;
-}
-
-float get_first_number_f(FILE *file)
-{
-    uint8_t buf[4];
-    size_t r = fread(buf, 1, 4, file);
-    if (!r)
-    {
-        fprintf(stderr, "ERROR: Couldn't get first number\n");
-        return -1;
-    }
-
-    return buf_to_float(buf, 4);
 }
 
 long get_len_of_section_tm_file(FILE *file)

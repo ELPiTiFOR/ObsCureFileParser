@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "utils.h"
+
 // reads the next 4 bytes in the file interpreting them as LSB
 // if the next 4 bytes are `AA BB CC DD` the result will be `DD CC BB AA`
 uint32_t read_4byte_lsb(FILE *file, size_t *read);
@@ -14,5 +16,7 @@ uint32_t read_4byte_msb(FILE *file, size_t *read);
 
 uint8_t read_1byte(FILE *file, size_t *read);
 
+float get_first_number_f(FILE *file);
+float get_first_number_f_lsb(FILE *file);
 
 #endif /* !FILE_READ_H */

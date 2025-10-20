@@ -43,3 +43,35 @@ uint8_t read_1byte(FILE *file, size_t *read)
 
     return buf[0];
 }
+
+float get_first_number_f(FILE *file)
+{
+    uint8_t buf[4];
+    size_t r = fread(buf, 1, 4, file);
+    if (!r)
+    {
+        fprintf(stderr, "ERROR: Couldn't get first number\n");
+        return -1;
+    }
+
+    return buf_to_float(buf, 4);
+}
+
+float get_first_number_f_lsb(FILE *file)
+{
+    uint8_t buf[4];
+    size_t r = fread(buf, 1, 4, file);
+    if (!r)
+    {
+        fprintf(stderr, "ERROR: Couldn't get first number\n");
+        return -1;
+    }
+
+    uint8_t buf_lsb[4];
+    for (size_t i = 0; i < 4; i++)
+    {
+        buf_lsb[i] = buf[3 - i];
+    }
+
+    return buf_to_float(buf_lsb, 4);
+}
