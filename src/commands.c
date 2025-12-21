@@ -256,6 +256,23 @@ int execute_commands(int argc, char **argv)
                 fprintf(stderr, "ERROR: Provide everything\n");
             }
         }
+        // 1: path
+        if (strcmp(argv[i], "--hoe-parse") == 0)
+        {
+            if (argc > i + 1)
+            {
+                if (parse_hoe_file_b(argv, i))
+                {
+                    fprintf(stderr, "ERROR: Couldn't parse `.hoe` file b\n");
+                }
+
+                i++;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: Provide everything\n");
+            }
+        }
     }
     return 0;
 }

@@ -6,6 +6,7 @@
 #include "it_file.h"
 #include "tm_file.h"
 #include "sav_file.h"
+#include "hoe_file.h"
 #include "utils.h"
 
 int parse_it_file_b(char **argv, size_t i)
@@ -317,6 +318,20 @@ int parse_sav_file_b(char **argv, size_t i)
     }
 
     print_sav_file(sav);
+
+    return 0;
+}
+
+int parse_hoe_file_b(char **argv, size_t i)
+{
+    hoe_file *hoe = parse_hoe_file(argv[i + 1]);
+    if (!hoe)
+    {
+        fprintf(stderr, "ERROR: Couldn't parse hoe file\n");
+        return 1;
+    }
+
+    print_hoe_file(hoe);
 
     return 0;
 }
