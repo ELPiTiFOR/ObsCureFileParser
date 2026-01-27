@@ -14,6 +14,8 @@ void write_4byte_msb(FILE *file, uint32_t u);
 
 void write_4byte_float_msb(FILE *file, float f);
 
+void write_1byte(FILE *file, uint8_t u)
+
 void write_array(FILE *file, uint8_t *arr, uint32_t len);
 
 #endif /* !FILE_WRITE_H */

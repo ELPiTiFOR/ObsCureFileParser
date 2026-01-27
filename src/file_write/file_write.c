@@ -27,6 +27,13 @@ void write_4byte_float_msb(FILE *file, float f)
     fwrite(buf, 1, 4, file);
 }
 
+void write_1byte(FILE *file, uint8_t u)
+{
+    char buf[1];
+    buf[0] = u;
+    fwrite(buf, 1, 1, file);
+}
+
 void write_array(FILE *file, uint8_t *arr, uint32_t len)
 {
     fwrite(arr, 1, len, file);

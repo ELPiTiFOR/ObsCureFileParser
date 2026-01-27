@@ -45,6 +45,7 @@ typedef struct
     uint32_t index;
     uint8_t room;
     uint8_t nb_saves;
+    uint8_t _uk_sav1[2];
     uint8_t diff_mode;
     uint32_t time;
     uint32_t handgun_ammo;
@@ -59,6 +60,8 @@ typedef struct
 } sav_file;
 
 sav_file *parse_sav_file(char *path);
+
+int serialize_sav_file(sav_file *sav, char *path);
 
 void print_sav_file(sav_file *sav);
 

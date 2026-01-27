@@ -16,7 +16,8 @@ int parse_general_info(sav_file *sav, FILE *file)
     sav->room = read_1byte(file, &r);
     sav->time = read_4byte_lsb(file, &r);
     sav->nb_saves = read_1byte(file, &r);
-    fseek(file, 2, SEEK_CUR);
+    sav->_uk_sav1[0] = read_1byte(file, &r);
+    sav->_uk_sav1[1] = read_1byte(file, &r);
     sav->diff_mode = read_1byte(file, &r);
 
     return 0;
@@ -244,6 +245,35 @@ sav_file *parse_sav_file(char *path)
     
     fclose(file);
     return sav;
+}
+
+int serialize_sav_general_info(sav_file *sav, FILE *file)
+{
+    write_4byte_lsb(file, sav->crc);
+    write_1byte(file, 0x06);
+    write_4byte_lsb(file, sav->index);
+    write_1byte(file, sav->room);
+    write_4byte_lsb(file, sav->time);
+    write_1byte(file, sav->nb_saves);
+    write_1byte(file, sav->_uk_sav1[0]);
+    write_1byte(file, sav->_uk_sav1[1]);
+    write_1byte(file, sav->diff_mode);
+    // TODO: resume, 7 unknown bytes
+}
+
+int serialize_sav_file(sav_file *sav, char *path)
+{
+    FILE *new_file = fopen(path, "wb");
+    if (!new_file)
+    {
+        fprintf(stderr, "ERROR: Couldn't fopen %s\n", path);
+        return 1;
+    }
+
+    serialize_sav_general_info(sav, new_file);
+
+    fclose(new_file);
+    return 0;
 }
 
 void print_general_info(sav_file *sav)
