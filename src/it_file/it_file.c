@@ -271,6 +271,22 @@ int serialize_it_file(it_file *it, char *path)
     return 0;
 }
 
+int get_item_from_loc(it_file *it, uint32_t item_loc, it_item *item)
+{
+    size_t len_items = it->len_items;
+    it_item **items = it->items;
+    for (size_t i = 0; i < len_items; i++)
+    {
+        if (items[i]->item_loc == item_loc)
+        {
+            *item = *(items[i]);
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 void free_it_file(it_file *it)
 {
     size_t len_items = it->len_items;

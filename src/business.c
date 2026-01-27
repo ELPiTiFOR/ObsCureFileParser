@@ -114,6 +114,28 @@ int remove_item_from_it_b(char **argv, size_t i)
     return 0;
 }
 
+int item_info_from_it_b(char **argv, size_t i)
+{
+    it_file *it = parse_it_file(argv[i + 1]);
+    if (!it)
+    {
+        return 1;
+    }
+
+    uint32_t item_loc = my_atoi_base(argv[i + 2], 16);
+
+    it_item item = {0};
+    if (get_item_from_loc(it, item_loc, &item))
+    {
+        return 1;
+    }
+
+    printf("Printing found item...\n");
+    print_it_item(&item);
+
+    return 0;
+}
+
 int parse_tm_file_b(char **argv, size_t i)
 {
     tm_file *tm = parse_tm_file(argv[i + 1]);

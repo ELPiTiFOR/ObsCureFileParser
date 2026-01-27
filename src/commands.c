@@ -135,6 +135,24 @@ int execute_commands(int argc, char **argv)
                 fprintf(stderr, "ERROR: Provide everything\n");
             }
         }
+
+        // 1: path
+        // 2: item_loc
+        if (strcmp(argv[i], "--it-item-info") == 0 && argc > i + 2)
+        {
+            if (argc > i + 2)
+            {
+                if (item_info_from_it_b(argv, i))
+                {
+                    fprintf(stderr, "ERROR: Couldn't get the information\n");
+                }
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: Provide everything\n");
+            }
+        }
+
         // 1: path
         if (strcmp(argv[i], "--tm-parse") == 0 && argc > i + 1)
         {

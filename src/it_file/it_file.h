@@ -27,6 +27,8 @@ int add_item_to_it(it_file *it, it_item *item);
 int edit_item_in_it(it_file *it, it_item *item);
 int remove_item_from_it(it_file *it, uint32_t item_loc);
 
+int get_item_from_loc(it_file *it, uint32_t item_loc, it_item *item);
+
 int serialize_it_file(it_file *it, char *path);
 void print_it_file(it_file *it);
 void print_it_item(it_item *item);
