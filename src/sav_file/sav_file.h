@@ -54,6 +54,7 @@ typedef struct
 
     sav_pc_info pcs[5];
 
+    size_t nb_chunks;
     sav_progress_chunk *progress_chunks;
 } sav_file;
 

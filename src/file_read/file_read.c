@@ -33,6 +33,19 @@ uint32_t read_4byte_msb(FILE *file, size_t *read)
     return res;
 }
 
+uint16_t read_2byte_lsb(FILE *file, size_t *read)
+{
+    uint8_t buf[2];
+    if ((*read = fread(buf, 1, 2, file)) == 0)
+    {
+        //fprintf(stderr, "ERROR: Couldn't read 4byte lsb\n");
+    }
+
+    void *buf_v = buf;
+    uint16_t *buf_i = buf_v;
+    return buf_i[0];
+}
+
 uint8_t read_1byte(FILE *file, size_t *read)
 {
     uint8_t buf[1];

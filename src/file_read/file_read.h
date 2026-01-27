@@ -14,6 +14,8 @@ uint32_t read_4byte_lsb(FILE *file, size_t *read);
 // if the next 4 bytes are `AA BB CC DD` the result will be `AA BB CC DD`
 uint32_t read_4byte_msb(FILE *file, size_t *read);
 
+uint16_t read_2byte_lsb(FILE *file, size_t *read);
+
 uint8_t read_1byte(FILE *file, size_t *read);
 
 float get_first_number_f(FILE *file);

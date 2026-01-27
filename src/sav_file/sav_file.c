@@ -148,7 +148,57 @@ int parse_item_inventory(sav_file *sav, FILE *file)
     return 0;
 }
 
+int parse_progress_chunk(sav_file *sav, sav_progress_chunk *chunk, FILE *file)
+{
+    size_t r = 0;
+    chunk->len = read_2byte_lsb(file, &r);
+    if (chunk->len == 0)
+    {
+        // TODO: remove magic numbers
+        return 2;
+    }
+
+    uint8_t *content = calloc(chunk->len, 1);
+    if (!content)
+    {
+        fprintf(stderr, "ERROR: Couldn't calloc content of chunk\n");
+        return 1;
+    }
+
+    r = fread(content, 1, chunk->len, file);
+    chunk->content = content;
+
+    return 0;
+}
+
+int parse_progress_chunks(sav_file *sav, FILE *file)
+{
+    int status = 0;
+    size_t nb_chunks = 0;
+    sav_progress_chunk *chunks = NULL;
+    sav_progress_chunk new_chunk = { 0 };
+
+    while ((status = parse_progress_chunk(sav, &new_chunk, file)) == 0)
+    {
+        nb_chunks++;
+        sav_progress_chunk *chunks2 = realloc(chunks, sizeof(sav_progress_chunk) * nb_chunks);
+        if (!chunks2)
+        {
+            fprintf(stderr, "ERROR: Couldn't realloc sav_progress_chunk\n");
+            return 1;
+        }
+        chunks = chunks2;
+        chunks[nb_chunks - 1] = new_chunk;
+    }
+
+    sav->nb_chunks = nb_chunks;
+    sav->progress_chunks = chunks;
+
+    return status != 2;
+}
+
 // TODO: finish parsing
+// TODO: free everything
 sav_file *parse_sav_file(char *path)
 {
     FILE *file = fopen(path, "rb");
@@ -184,6 +234,13 @@ sav_file *parse_sav_file(char *path)
     }
 
     parse_pcs(sav, file);
+
+    if (parse_progress_chunks(sav, file))
+    {
+        fprintf(stderr, "ERROR: Couldn't progress chunks %s\n", path);
+        fclose(file);
+        return NULL;
+    }
     
     fclose(file);
     return sav;
@@ -281,6 +338,43 @@ void print_pc_info(sav_pc_info *pc)
     print_weapons_inventory(pc->weapons);
 }
 
+void print_progress_chunk(sav_progress_chunk *chunk)
+{
+    size_t len = chunk->len;
+    uint8_t *content = chunk->content;
+
+    printf("Chunk length: %d\n", len);
+    printf("Chunk content:\n");
+    for (size_t i = 0; i < len; i++)
+    {
+        if (i % 16 == 0)
+        {
+            printf("    ");
+        }
+
+        printf("%02X ", content[i]);
+
+        if ((i + 1) % 16 == 0)
+        {
+            putchar('\n');
+        }
+    }
+
+    putchar('\n');
+}
+
+void print_progress_chunks(sav_file *sav)
+{
+    size_t nb_chunks = sav->nb_chunks;
+    sav_progress_chunk *chunks = sav->progress_chunks;
+
+    for (size_t i = 0; i < nb_chunks; i++)
+    {
+        printf("# Chunk number %d\n", i);
+        print_progress_chunk(chunks + i);
+    }
+}
+
 void print_sav_file(sav_file *sav)
 {
     print_general_info(sav);
@@ -291,4 +385,6 @@ void print_sav_file(sav_file *sav)
         printf("PC %zu\n", i);
         print_pc_info(sav->pcs + i);
     }
+
+    print_progress_chunks(sav);
 }
