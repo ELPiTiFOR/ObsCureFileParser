@@ -33,6 +33,13 @@ void fill_buf_uint32_lsb(uint32_t u, char *buf)
     buf_u[0] = u;
 }
 
+void fill_buf_uint16_lsb(uint16_t u, char *buf)
+{
+    void *buf_v = buf;
+    uint16_t *buf_u = buf_v;
+    buf_u[0] = u;
+}
+
 void fill_buf_float_msb(float f, char *buf)
 {
     void *f_v = &f;

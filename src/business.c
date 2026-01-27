@@ -342,3 +342,18 @@ int parse_sav_file_b(char **argv, size_t i)
 
     return 0;
 }
+
+int reserialize_sav_file_b(char **argv, size_t i)
+{
+    sav_file *sav = parse_sav_file(argv[i + 1]);
+    if (!sav)
+    {
+        fprintf(stderr, "ERROR: Couldn't parse sav file\n");
+        return 1;
+    }
+
+    print_sav_file(sav);
+    serialize_sav_file(sav, argv[i + 2]);
+
+    return 0;
+}
