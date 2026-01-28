@@ -87,7 +87,8 @@ int parse_pc_info(sav_pc_info *pc, FILE *file)
     pc->nb_weapons = read_1byte(file, &r);
     pc->door = read_4byte_lsb(file, &r);
     pc->room = read_1byte(file, &r);
-    fseek(file, 1, SEEK_CUR);
+    //fseek(file, 1, SEEK_CUR);
+    pc->_uk_is_teammate = read_1byte(file, &r);
     pc->x_pos = read_4byte_lsb(file, &r);
     pc->y_pos = read_4byte_lsb(file, &r);
     pc->z_pos = read_4byte_lsb(file, &r);
@@ -153,7 +154,7 @@ int parse_item_inventory(sav_file *sav, sav_inv_item *items, FILE *file)
     }
 
     printf("inv_capacity = %u | i = %zu\n", sav->item_inventory.inv_capacity, i);
-    fseek(file, (sav->item_inventory.inv_capacity - i - 1) * 9, SEEK_CUR);
+    fseek(file, (sav->item_inventory.inv_capacity - i - (sav->handgun_ammo != 0) - (sav->shotgun_ammo != 0)) * 9, SEEK_CUR);
 
     return 0;
 }
@@ -358,7 +359,7 @@ void serialize_pc(sav_pc_info *pc, FILE *file)
     write_1byte(file, pc->nb_weapons);
     write_4byte_lsb(file, pc->door);
     write_1byte(file, pc->room);
-    write_1byte(file, 0x00);
+    write_1byte(file, pc->_uk_is_teammate);
     write_4byte_lsb(file, pc->x_pos);
     write_4byte_lsb(file, pc->y_pos);
     write_4byte_lsb(file, pc->z_pos);

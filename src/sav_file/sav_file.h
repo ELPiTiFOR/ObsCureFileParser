@@ -21,6 +21,7 @@ typedef struct
 {
     uint32_t door;
     uint8_t room;
+    uint8_t _uk_is_teammate;
     uint32_t x_pos;
     uint32_t y_pos;
     uint32_t z_pos;
