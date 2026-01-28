@@ -153,7 +153,6 @@ int parse_item_inventory(sav_file *sav, sav_inv_item *items, FILE *file)
         }
     }
 
-    printf("inv_capacity = %u | i = %zu\n", sav->item_inventory.inv_capacity, i);
     fseek(file, (sav->item_inventory.inv_capacity - i - (sav->handgun_ammo != 0) - (sav->shotgun_ammo != 0)) * 9, SEEK_CUR);
 
     return 0;
