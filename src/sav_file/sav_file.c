@@ -233,7 +233,6 @@ int parse_progress_chunks(sav_file *sav, FILE *file)
     return status != 2;
 }
 
-// TODO: finish parsing
 // TODO: free everything
 sav_file *parse_sav_file(char *path)
 {

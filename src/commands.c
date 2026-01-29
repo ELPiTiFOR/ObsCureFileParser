@@ -37,15 +37,6 @@ void help()
     printf("\t.\\ObsCureRandomizer.exe --help\n");
 }
 
-void test()
-{
-    //path("C:\\SteamLibrary\\steamapps\\common\\Obscure");
-    //print_every_room();
-    //print_struct_rooms_ids();
-    //print_enum_rooms_ids();
-    //print_enum_rooms_array();
-}
-
 int execute_commands(int argc, char **argv)
 {
     // now we manage all other commands/actions
@@ -291,6 +282,10 @@ int execute_commands(int argc, char **argv)
             {
                 fprintf(stderr, "ERROR: Provide everything\n");
             }
+        }
+        if (strcmp(argv[i], "test") == 0)
+        {
+            test(argv, i);
         }
     }
     return 0;
