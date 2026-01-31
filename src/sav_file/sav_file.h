@@ -52,6 +52,7 @@ typedef struct
 {
     uint16_t inv_len;
     uint8_t inv_capacity;
+    uint8_t nb_items;
     sav_inv_item *items;
 } sav_inv;
 
@@ -83,5 +84,7 @@ sav_file *parse_sav_file(char *path);
 int serialize_sav_file(sav_file *sav, char *path);
 
 void print_sav_file(sav_file *sav);
+
+int add_item(sav_file *sav, item_id id, uint8_t amount);
 
 #endif /* !SAV_FILE_H */

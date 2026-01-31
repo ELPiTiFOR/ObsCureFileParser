@@ -336,3 +336,17 @@ item_id get_item_id_from_loc(it_file *it, uint32_t item_loc)
 
     return (item_id) item.item_id;
 }
+
+uint32_t get_first_loc_with_id(it_file *it, item_id id)
+{
+    size_t len_items = it->len_items;
+    for (size_t i = 0; i < len_items; i++)
+    {
+        if (it->items[i]->item_id == id)
+        {
+            return it->items[i]->item_loc;
+        }
+    }
+
+    return 0x000000;
+}

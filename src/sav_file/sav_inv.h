@@ -6,6 +6,7 @@
 #include "sav_file.h"
 
 int parse_item_inventory_section(sav_file *sav, FILE *file);
+int add_item_to_inv(sav_inv *inv, item_id id, uint8_t amount);
 void serialize_item_inventory_section(sav_file *sav, FILE *file);
 void print_item_inventory(sav_file *sav);
 

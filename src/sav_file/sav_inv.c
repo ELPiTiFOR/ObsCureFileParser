@@ -83,6 +83,7 @@ int parse_item_inventory(sav_file *sav, sav_inv_item *items, FILE *file)
     }
 
     fseek(file, (sav->item_inventory.inv_capacity - i - (sav->handgun_ammo != 0) - (sav->shotgun_ammo != 0)) * 9, SEEK_CUR);
+    sav->item_inventory.nb_items = i;
 
     return 0;
 }
@@ -109,6 +110,83 @@ int parse_item_inventory_section(sav_file *sav, FILE *file)
 
     sav->item_inventory.items = items;
 
+    return 0;
+}
+
+/*
+** GETTING
+*/
+ssize_t index_of_item_with_id(sav_inv *inv, item_id id)
+{
+    for (size_t i = 0; i < inv->nb_items; i++)
+    {
+        if (inv->items[i].id == id)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+/*
+** MODIFYING
+*/
+
+int push_item(sav_inv *inv, sav_inv_item *item)
+{
+    if (inv->nb_items == inv->inv_capacity)
+    {
+        return 1;
+    }
+
+    inv->items[inv->nb_items] = *item;
+    inv->nb_items++;
+
+    return 0;
+}
+
+void update_item_at(sav_inv *inv, size_t index, sav_inv_item *item)
+{
+    inv->items[index] = *item;
+}
+
+int update_item_with_id(sav_inv *inv, item_id id, sav_inv_item *item)
+{
+    ssize_t index = index_of_item_with_id(inv, id);
+    if (index == -1)
+    {
+        return 1;
+    }
+
+    update_item_at(inv, (size_t) index, item);
+    return 0;
+}
+
+// TODO: be careful, this implementation might cause problems
+int add_item_to_inv(sav_inv *inv, item_id id, uint8_t amount)
+{
+    ssize_t index = index_of_item_with_id(inv, id);
+    sav_inv_item item = {0};
+    item.id = id;
+    if (index == -1)
+    {
+        item.item_loc = get_first_loc_with_id(it, id);
+        item.quantity = amount;
+        return push_item(inv, &item);
+    }
+
+    item = inv->items[index];
+    if (item.quantity + amount > 0xFF)
+    {
+        item.quantity = 0xFF;
+    }
+    else
+    {
+        item.quantity += amount;
+    }
+
+    update_item_at(inv, index, &item);
     return 0;
 }
 

@@ -269,3 +269,8 @@ void print_sav_file(sav_file *sav)
     // TODO: uncomment
     //print_progress_chunks(sav);
 }
+
+int add_item(sav_file *sav, item_id id, uint8_t amount)
+{
+    return add_item_to_inv(&sav->item_inventory, id, amount);
+}
