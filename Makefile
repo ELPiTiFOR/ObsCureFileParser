@@ -19,6 +19,9 @@ SRC = \
 	src/it_file/it_file.c \
 	src/tm_file/tm_file.c \
 	src/sav_file/sav_file.c \
+	src/sav_file/sav_inv.c \
+	src/sav_file/sav_utils.c \
+	src/sav_file/sav_pc.c \
 	src/obscure_ids/item_id.c \
 	src/obscure_ids/document_id.c \
 	src/file_read/file_read.c \

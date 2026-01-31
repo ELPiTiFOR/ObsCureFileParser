@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#include "it_file.h"
+
+extern it_file *it;
+
 typedef struct
 {
     uint16_t len;
@@ -11,6 +15,7 @@ typedef struct
 
 typedef struct
 {
+    item_id id;
     uint32_t weapon_loc;
     uint8_t quantity;
     uint8_t ammo;
@@ -37,6 +42,7 @@ typedef struct
 
 typedef struct
 {
+    item_id id;
     uint32_t item_loc;
     uint8_t quantity;
     uint32_t extra_info;
