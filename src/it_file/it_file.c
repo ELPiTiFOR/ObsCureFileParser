@@ -7,6 +7,8 @@
 #include "file_read.h"
 #include "file_write.h"
 
+#include "item_id.h"
+
 it_item *parse_it_item(FILE *file)
 {
     size_t read = 0;
@@ -320,4 +322,17 @@ void print_it_file(it_file *it)
         printf("Item %zu\n", i);
         print_it_item(items[i]);
     }
+}
+
+// FROM HERE, FUNCTIONS USE OTHER FILES/LIBS
+item_id get_item_id_from_loc(it_file *it, uint32_t item_loc)
+{
+    //printf("getting item_id from loc %06X\n", item_loc);
+    it_item item = {0};
+    if (get_item_from_loc(it, item_loc, &item))
+    {
+        return NO_ITEM_ID;
+    }
+
+    return (item_id) item.item_id;
 }

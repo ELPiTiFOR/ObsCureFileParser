@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "item_id.h"
+
 typedef struct
 {
     uint32_t item_id;
@@ -34,5 +36,6 @@ void print_it_file(it_file *it);
 void print_it_item(it_item *item);
 void free_it_file(it_file *it);
 
+item_id get_item_id_from_loc(it_file *it, uint32_t item_loc);
 
 #endif /* !IT_FILE_H */

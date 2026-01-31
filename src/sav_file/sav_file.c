@@ -7,6 +7,18 @@
 #include "file_read.h"
 #include "file_write.h"
 
+#include "it_file.h"
+
+#include "item_id.h"
+#include "document_id.h"
+
+it_file *it = NULL;
+
+void setup_it_file(void)
+{
+    it = parse_it_file("E:\\Fran\\OBSCURE\\Game Data\\Testing ground\\data\\_common\\allitems.it");
+}
+
 int parse_general_info(sav_file *sav, FILE *file)
 {
     // TODO: check each r
@@ -236,6 +248,7 @@ int parse_progress_chunks(sav_file *sav, FILE *file)
 // TODO: free everything
 sav_file *parse_sav_file(char *path)
 {
+    setup_it_file();
     FILE *file = fopen(path, "rb");
     if (!file)
     {
@@ -426,6 +439,42 @@ int serialize_sav_file(sav_file *sav, char *path)
     return 0;
 }
 
+void print_item_loc(uint32_t item_loc, item_id id)
+{
+    printf("%06X | ", item_loc);
+    char *name = item_name_from_id(id);
+
+    if (id == NO_ITEM_ID || strcmp(name, "NO_ITEM_ID") != 0)
+    {
+        printf("Item name: %s", name/*, (uint32_t) id*/);
+        return;
+    }
+
+    printf("Item ID: %04X", (uint32_t) id);
+}
+
+void print_extra_info_doc(uint32_t extra_info)
+{
+    document_id id = (document_id) extra_info;
+    char *name = document_name_from_id(id);
+
+    if (strcmp(name, "NO_DOCUMENT_ID") != 0)
+    {
+        printf(" | Document name: %s", name/*, (uint32_t) id*/);
+        return;
+    }
+}
+
+void print_extra_info_map(uint32_t extra_info)
+{
+    // TODO: make the letter of the map an enum?
+    uint8_t letter = 0;
+    letter = extra_info & 0xff;
+
+    printf(" | Map letter: %c", letter);
+    return;
+}
+
 void print_general_info(sav_file *sav)
 {
     printf("# General info\n");
@@ -444,9 +493,21 @@ void print_general_info(sav_file *sav)
 
 void print_item(sav_inv_item *item)
 {
-    printf("    Item location: %06X\n", item->item_loc);
+    item_id id = get_item_id_from_loc(it, item->item_loc);
+    printf("    Item location: ");
+    print_item_loc(item->item_loc, id);
+    putchar('\n');
     printf("    Quantity: %02X\n", item->quantity);
-    printf("    Extra info: %08X\n", item->extra_info);
+    printf("    Extra info: %08X", item->extra_info);
+    if (id == DOCUMENT || id == PHOTO)
+    {
+        print_extra_info_doc(item->extra_info);
+    }
+    else if (id == MAP)
+    {
+        print_extra_info_map(item->extra_info);
+    }
+    putchar('\n');
 }
 
 void print_item_inventory(sav_file *sav)
@@ -466,7 +527,10 @@ void print_item_inventory(sav_file *sav)
 
 void print_weapon(sav_inv_weapon *weapon)
 {
-    printf("        Weapon location: %06X\n", weapon->weapon_loc);
+    item_id id = get_item_id_from_loc(it, weapon->weapon_loc);
+    printf("        Weapon location: ");
+    print_item_loc(weapon->weapon_loc, id);
+    putchar('\n');
     printf("        Quantity: %02X\n", weapon->quantity);
     printf("        Ammo: %hhu\n", weapon->ammo);
     printf("        Extra info: %08X\n", weapon->extra_info);
@@ -492,7 +556,10 @@ void print_pc_info(sav_pc_info *pc)
     printf("    Y pos: %d\n", pc->y_pos);
     printf("    Z pos: %d\n", pc->z_pos);
     printf("    Rotation: %hhu\n", pc->rot);
-    printf("    Current weapon: %06X\n", pc->curr_weapon_loc);
+    item_id id = get_item_id_from_loc(it, pc->curr_weapon_loc);
+    printf("    Current weapon: ");
+    print_item_loc(pc->curr_weapon_loc, id);
+    putchar('\n');
 
     size_t i = 0;
     while (i < 29)
@@ -566,5 +633,5 @@ void print_sav_file(sav_file *sav)
         print_pc_info(sav->pcs + i);
     }
 
-    print_progress_chunks(sav);
+    //print_progress_chunks(sav);
 }
