@@ -13,3 +13,8 @@ These compilation units use functions and variables from `src/it_file` (the
 folder where the parsing functions for `.it` files can be found) and from
 `src/obscure_ids` (a folder with some useful information about ObsCure in
 general, like Item IDs, Document IDs, etc).
+
+# config
+You can create a `SAV.config` file in the same directory as the executable and
+include these values:
+`verbose-print=true` (or `false`)

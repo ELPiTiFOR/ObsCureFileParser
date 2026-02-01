@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "config.h"
+
 #include "it_file.h"
 
 // These are the indexes of each character in the array `pcs` (which comes from
@@ -14,6 +16,7 @@
 #define SHANNON_PC_INDEX 4
 
 extern it_file *it;
+extern config *sav_config;
 
 typedef struct
 {

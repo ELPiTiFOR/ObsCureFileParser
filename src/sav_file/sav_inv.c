@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "sav_file.h"
 #include "sav_utils.h"
@@ -245,8 +246,18 @@ void serialize_item_inventory_section(sav_file *sav, FILE *file)
 void print_item(sav_inv_item *item)
 {
     item_id id = item->id;
-    printf("    Item location: ");
-    print_item_loc(item->item_loc, id);
+    printf("    ");
+    if (strcmp(get_config_value(sav_config, "verbose-print"), "true") == 0)
+    {
+        printf("Item location: ");
+        print_item_loc(item->item_loc, id);
+    }
+    else
+    {
+        char *name = item_name_from_id(id);
+        printf("Item: %s", name);
+    }
+
     putchar('\n');
     printf("    Quantity: %02X\n", item->quantity);
     printf("    Extra info: %08X", item->extra_info);

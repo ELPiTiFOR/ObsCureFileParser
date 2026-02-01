@@ -9,6 +9,7 @@ CPPFLAGS = \
 	-Isrc/sav_file \
 	-Isrc/file_read \
 	-Isrc/file_write \
+	-Isrc/config \
 	-Isrc/obscure_ids \
 
 CFLAGS = -std=c99
@@ -26,6 +27,7 @@ SRC = \
 	src/obscure_ids/document_id.c \
 	src/file_read/file_read.c \
 	src/file_write/file_write.c \
+	src/config/config.c \
 	src/commands.c \
 	src/business.c \
 

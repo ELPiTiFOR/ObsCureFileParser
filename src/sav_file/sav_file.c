@@ -8,6 +8,7 @@
 #include "sav_pc.h"
 #include "sav_utils.h"
 
+#include "config.h"
 #include "file_read.h"
 #include "file_write.h"
 
@@ -17,10 +18,12 @@
 #include "document_id.h"
 
 it_file *it = NULL;
+config *sav_config = NULL;
 
-void setup_it_file(void)
+void setup_global_vars(void)
 {
     it = parse_it_file("E:\\Fran\\OBSCURE\\Game Data\\Testing ground\\data\\_common\\allitems.it");
+    sav_config = read_config("SAV.config");
 }
 
 int parse_general_info(sav_file *sav, FILE *file)
@@ -94,7 +97,7 @@ int parse_progress_chunks(sav_file *sav, FILE *file)
 // TODO: free everything
 sav_file *parse_sav_file(char *path)
 {
-    setup_it_file();
+    setup_global_vars();
     FILE *file = fopen(path, "rb");
     if (!file)
     {
