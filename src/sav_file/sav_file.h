@@ -5,6 +5,14 @@
 
 #include "it_file.h"
 
+// These are the indexes of each character in the array `pcs` (which comes from
+// Playable Characters)
+#define STAN_PC_INDEX 0
+#define JOSH_PC_INDEX 1
+#define KENNY_PC_INDEX 2
+#define ASHLEY_PC_INDEX 3
+#define SHANNON_PC_INDEX 4
+
 extern it_file *it;
 
 typedef struct
