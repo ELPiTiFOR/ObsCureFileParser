@@ -11,6 +11,8 @@ CPPFLAGS = \
 	-Isrc/file_write \
 	-Isrc/config \
 	-Isrc/obscure_ids \
+	-Isrc/my_crc \
+	-Isrc/correct_crc \
 
 CFLAGS = -std=c99
 
@@ -30,6 +32,8 @@ SRC = \
 	src/config/config.c \
 	src/commands.c \
 	src/business.c \
+	src/my_crc/my_crc.c \
+	src/correct_crc/correct_crc.c \
 
 OBJ = ${SRC:.c=.o}
 

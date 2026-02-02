@@ -21,4 +21,6 @@ uint8_t read_1byte(FILE *file, size_t *read);
 float get_first_number_f(FILE *file);
 float get_first_number_f_lsb(FILE *file);
 
+char *str_from_file(char *src, size_t *total_written);
+
 #endif /* !FILE_READ_H */

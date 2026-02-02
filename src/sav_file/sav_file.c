@@ -9,6 +9,7 @@
 #include "sav_utils.h"
 
 #include "config.h"
+#include "correct_crc.h"
 #include "file_read.h"
 #include "file_write.h"
 
@@ -202,7 +203,7 @@ int serialize_sav_file(sav_file *sav, char *path)
     }
 
     fclose(new_file);
-    return 0;
+    return correct_sav_checksum(path);
 }
 
 void print_general_info(sav_file *sav)

@@ -367,7 +367,7 @@ int test(char **argv, size_t i)
         return 1;
     }
 
-    //add_item(sav, DISC, 100);
-    add_weapon(sav, JOSH_PC_INDEX, LASER, 0);
+    add_item(sav, DISC, 100);
+    //add_weapon(sav, JOSH_PC_INDEX, LASER, 0);
     serialize_sav_file(sav, "E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game1.sav");
 }
