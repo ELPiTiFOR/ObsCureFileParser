@@ -33,16 +33,24 @@ int parse_weapon(sav_inv_weapon *weapon, FILE *file)
     return 0;
 }
 
-int parse_weapon_inventory(sav_inv_weapon *weapons, uint8_t nb_weapons, FILE *file)
+int parse_weapon_inventory(sav_pc_info *pc, sav_inv_weapon *weapons,
+    uint8_t weapons_capacity, FILE *file)
 {
     size_t i = 0;
+    size_t nb_weapons = 0;
     int is_weapon = 0;
-    while (i < nb_weapons)
+    while (i < weapons_capacity)
     {
         parse_weapon(weapons + i, file);
+        if (weapons[i].weapon_loc != 0)
+        {
+            nb_weapons++;
+        }
+
         i++;
     }
 
+    pc->nb_weapons = nb_weapons;
     return 0;
 }
 
@@ -51,7 +59,7 @@ int parse_pc_info(sav_pc_info *pc, FILE *file)
     //
     size_t r = 0;
     pc->pc_info_len = read_2byte_lsb(file, &r);
-    pc->nb_weapons = read_1byte(file, &r);
+    pc->weapons_capacity = read_1byte(file, &r);
     pc->door = read_4byte_lsb(file, &r);
     pc->room = read_1byte(file, &r);
     //fseek(file, 1, SEEK_CUR);
@@ -64,9 +72,9 @@ int parse_pc_info(sav_pc_info *pc, FILE *file)
     fread(pc->unknown, 1, 29, file);
     pc->health = get_first_number_f_lsb(file);
 
-    sav_inv_weapon *weapons = calloc(pc->nb_weapons, sizeof(sav_inv_weapon));
+    sav_inv_weapon *weapons = calloc(pc->weapons_capacity, sizeof(sav_inv_weapon));
 
-    parse_weapon_inventory(weapons, pc->nb_weapons, file);
+    parse_weapon_inventory(pc, weapons, pc->weapons_capacity, file);
     pc->weapons = weapons;
     return 0;
 }
@@ -80,6 +88,84 @@ int parse_pcs(sav_file *sav, FILE *file)
         parse_pc_info(sav->pcs + i, file);
     }
 
+    return 0;
+}
+
+/*
+** GETTING
+*/
+ssize_t index_of_weapon_with_id(sav_pc_info *pc, item_id id)
+{
+    for (size_t i = 0; i < pc->nb_weapons; i++)
+    {
+        if (pc->weapons[i].id == id)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+/*
+** MODIFYING
+*/
+
+int push_weapon(sav_pc_info *pc, sav_inv_weapon *weapon)
+{
+    if (pc->nb_weapons == pc->weapons_capacity)
+    {
+        return 1;
+    }
+
+    pc->weapons[pc->nb_weapons] = *weapon;
+    pc->nb_weapons++;
+
+    return 0;
+}
+
+void update_weapon_at(sav_pc_info *pc, size_t index, sav_inv_weapon* weapon)
+{
+    pc->weapons[index] = *weapon;
+}
+
+int update_weapon_with_id(sav_pc_info *pc, item_id id, sav_inv_weapon *weapon)
+{
+    ssize_t index = index_of_weapon_with_id(pc, id);
+    if (index == -1)
+    {
+        return 1;
+    }
+
+    update_weapon_at(pc, (size_t) index, weapon);
+    return 0;
+}
+
+// TODO: be careful, this implementation might cause problems
+int add_weapon_to_inv(sav_pc_info *pc, item_id id, uint8_t ammo)
+{
+    ssize_t index = index_of_weapon_with_id(pc, id);
+    sav_inv_weapon weapon = {0};
+    weapon.id = id;
+    if (index == -1 && 0)
+    {
+        weapon.weapon_loc = get_first_loc_with_id(it, id);
+        weapon.quantity = 1;
+        weapon.ammo = ammo;
+        return push_weapon(pc, &weapon);
+    }
+
+    weapon = pc->weapons[index];
+    if (weapon.ammo + ammo > 0xFF)
+    {
+        weapon.ammo = 0xFF;
+    }
+    else
+    {
+        weapon.ammo += ammo;
+    }
+
+    update_weapon_at(pc, index, &weapon);
     return 0;
 }
 
@@ -100,7 +186,7 @@ void serialize_pc_weapon(sav_inv_weapon *weapon, FILE *file)
 void serialize_pc(sav_pc_info *pc, FILE *file)
 {
     write_2byte_lsb(file, pc->pc_info_len);
-    write_1byte(file, pc->nb_weapons);
+    write_1byte(file, pc->weapons_capacity);
     write_4byte_lsb(file, pc->door);
     write_1byte(file, pc->room);
     write_1byte(file, pc->_uk_is_teammate);
@@ -112,7 +198,7 @@ void serialize_pc(sav_pc_info *pc, FILE *file)
     fwrite(pc->unknown, 1, 29, file);
     write_4byte_float_lsb(file, pc->health);
 
-    for (size_t i = 0; i < pc->nb_weapons; i++)
+    for (size_t i = 0; i < pc->weapons_capacity; i++)
     {
         serialize_pc_weapon(pc->weapons + i, file);
     }
@@ -141,10 +227,10 @@ void print_weapon(sav_inv_weapon *weapon)
     printf("        Extra info: %08X\n", weapon->extra_info);
 }
 
-void print_weapons_inventory(sav_inv_weapon *weapons, uint8_t nb_weapons)
+void print_weapons_inventory(sav_inv_weapon *weapons, uint8_t weapons_capacity)
 {
     size_t i = 0;
-    while (weapons[i].weapon_loc != 0 && i < nb_weapons)
+    while (weapons[i].weapon_loc != 0 && i < weapons_capacity)
     {
         printf("        # Weapon %u\n", i);
         print_weapon(weapons + i);
@@ -186,6 +272,8 @@ void print_pc_info(sav_pc_info *pc)
 
     putchar('\n');
     printf("    Health: %3.2f\n", pc->health);
+    printf("    Weapons capacity: %zu | nb: %zu\n", pc->weapons_capacity,
+        pc->nb_weapons);
     printf("    Weapons inventory:\n");
-    print_weapons_inventory(pc->weapons, pc->nb_weapons);
+    print_weapons_inventory(pc->weapons, pc->weapons_capacity);
 }

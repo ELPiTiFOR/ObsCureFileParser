@@ -277,3 +277,8 @@ int add_item(sav_file *sav, item_id id, uint8_t amount)
 {
     return add_item_to_inv(&sav->item_inventory, id, amount);
 }
+
+int add_weapon(sav_file *sav, size_t pc_index, item_id id, uint8_t ammo)
+{
+    return add_weapon_to_inv(sav->pcs + pc_index, id, ammo);
+}

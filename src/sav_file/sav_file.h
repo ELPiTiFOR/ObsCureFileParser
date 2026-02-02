@@ -47,7 +47,8 @@ typedef struct
     float health;
 
     uint16_t pc_info_len;
-    uint8_t nb_weapons;
+    uint8_t weapons_capacity;
+    uint8_t nb_weapons;             // actual number of weapons
     sav_inv_weapon *weapons;
 } sav_pc_info;
 
@@ -97,5 +98,6 @@ int serialize_sav_file(sav_file *sav, char *path);
 void print_sav_file(sav_file *sav);
 
 int add_item(sav_file *sav, item_id id, uint8_t amount);
+int add_weapon(sav_file *sav, size_t pc_index, item_id id, uint8_t ammo);
 
 #endif /* !SAV_FILE_H */

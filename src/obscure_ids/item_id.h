@@ -38,7 +38,7 @@ typedef enum
     WHEEL = 0x025E,
     MEDKIT = 0x025F,
     FILM_24 = 0x0260,
-    SUBJECT_37_ = 0x0261,
+    VIDEO_TAPE = 0x0261,
     REEL_OF_WIRE = 0x0263,
     ENERGY_DRINK = 0x0264,
 } item_id;

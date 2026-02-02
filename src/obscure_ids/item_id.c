@@ -38,7 +38,7 @@ item_id item_ids[] =
     WHEEL,
     MEDKIT,
     FILM_24,
-    SUBJECT_37_,
+    VIDEO_TAPE,
     REEL_OF_WIRE,
     ENERGY_DRINK
 };
@@ -78,7 +78,7 @@ char *item_names[] =
     "WHEEL",
     "MEDKIT",
     "FILM_24",
-    "SUBJECT_37?",
+    "VIDEO_TAPE",
     "REEL_OF_WIRE",
     "ENERGY_DRINK"
 };
