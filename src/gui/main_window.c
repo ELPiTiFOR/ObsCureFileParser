@@ -37,15 +37,23 @@ void create_it_mod_list()
         entries = nb_remaining_items;
     }
 
+    // TODO: the index starts at 0, check if the sentinel is being "printed"!
     for (size_t i = 0; i < entries; i++)
     {
         char button_text[7] = {0};
         sprintf(button_text, "0x%04X", items[i]->item_id);
 
+        // Index static text
+        char index_text[64] = {0};
+        sprintf(index_text, "%3d", current_it_list_offset + i);
+        HWND indexTextHwnd = CreateWindow("STATIC", index_text, 
+            WS_VISIBLE | WS_CHILD, 20, 90 + (i * 80), 35, 20, thisHwnd,
+            (HMENU)0, thisHInstance, NULL);
+
         // Item ID button
         HWND itemIdButtonHwnd = CreateWindow("BUTTON", "" /*button_text*/,
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP,
-            20, 80 + (i * 80), 60, 60, thisHwnd, (HMENU)ITEM_ID_BUTTON_IDS_START + i, thisHInstance, NULL);
+            65, 80 + (i * 80), 60, 60, thisHwnd, (HMENU)ITEM_ID_BUTTON_IDS_START + i, thisHInstance, NULL);
 
         // image of the Item ID button
         char image_filename[512] = {0};
@@ -63,7 +71,7 @@ void create_it_mod_list()
         // setting the image
         SendMessage(itemIdButtonHwnd, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)itemBitmap);
 
-        it_mod_list *next = make_iml(NULL, i, itemIdButtonHwnd,
+        it_mod_list *next = make_iml(NULL, indexTextHwnd, i, itemIdButtonHwnd,
             ITEM_ID_BUTTON_IDS_START + i, itemBitmap, items[i]);
         p->next = next;
         p = p->next;
