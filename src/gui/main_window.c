@@ -142,7 +142,11 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
         }
         else if (LOWORD(wParam) == UP_IT_BUTTON_ID)
         {
-            if (current_it_list_offset >= entries_per_page)
+            if (current_it_list_offset == 0)
+            {
+                break;
+            }
+            else if (current_it_list_offset >= entries_per_page)
             {
                 current_it_list_offset -= entries_per_page;
             }
