@@ -360,14 +360,22 @@ int reserialize_sav_file_b(char **argv, size_t i)
 
 int test(char **argv, size_t i)
 {
-    sav_file *sav = parse_sav_file("E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game1.sav");
+    sav_file *sav = parse_sav_file("E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game2.sav");
     if (!sav)
     {
         fprintf(stderr, "ERROR: Couldn't parse sav file\n");
         return 1;
     }
 
-    add_item(sav, DISC, 100);
-    //add_weapon(sav, JOSH_PC_INDEX, LASER, 0);
-    serialize_sav_file(sav, "E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game1.sav");
+    //add_item(sav, MEDKIT, 100);
+    /*
+    if (add_weapon(sav, JOSH_PC_INDEX, POWERFUL_FLASHLIGHT, 100))
+    {
+        printf("something went wrong my boy\n");
+    }
+    */
+    sav->diff_mode = 0x01;
+    //sav->shotgun_ammo = 2000;
+    //sav->handgun_ammo = 2000;
+    serialize_sav_file(sav, "E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game2.sav");
 }

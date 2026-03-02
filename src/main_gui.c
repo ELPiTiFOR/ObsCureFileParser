@@ -1,0 +1,76 @@
+#include <objbase.h>
+#include <shlobj.h>
+#include <shobjidl.h> 
+#include <windows.h>
+
+#include "main_window.h"
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+    thisHInstance = hInstance;
+
+    /*
+    HICON hIcon = LoadImage(
+        NULL,
+        "icon_ocsgm.ico",
+        IMAGE_ICON,
+        0, 0,
+        LR_LOADFROMFILE | LR_DEFAULTSIZE
+    );
+    */
+
+    // registering main window class
+    WNDCLASS wc = {0};
+    wc.style = CS_HREDRAW | CS_VREDRAW;
+    wc.lpfnWndProc = MainWindowProc;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = MAIN_WINDOW_CLASS_NAME;
+    wc.hbrBackground = CreateSolidBrush(RGB(255, 255, 255));
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    /*
+    if (hIcon != NULL) {
+        wc.hIcon = hIcon;
+        //wc.hIconSm = hIcon;
+    }
+    */
+    RegisterClass(&wc);
+
+    // the window
+    HWND hwnd = CreateWindowEx(
+        0,
+        //WS_EX_TOPMOST,
+        MAIN_WINDOW_CLASS_NAME,
+        "ObsCure File Parser",
+        //WS_OVERLAPPEDWINDOW,
+        0 | WS_OVERLAPPED | WS_SYSMENU | WS_MINIMIZEBOX, // | WS_VSCROLL,
+        //WS_POPUP,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        /*
+        800,
+        600,
+        */
+        710,
+        830,
+        NULL,
+        NULL,
+        hInstance,
+        NULL
+    );
+
+    thisHwnd = hwnd;
+
+    // buttons, etc of the main window
+    create_main_window_elements(hwnd, hInstance);
+
+    ShowWindow(hwnd, nCmdShow);
+    
+    MSG msg = {0};
+    while (GetMessage(&msg, NULL, 0, 0))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+    
+    return 0;
+}

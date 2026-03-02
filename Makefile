@@ -13,11 +13,13 @@ CPPFLAGS = \
 	-Isrc/obscure_ids \
 	-Isrc/my_crc \
 	-Isrc/correct_crc \
+	-Isrc/gui \
 
 CFLAGS = -std=c99
+CFLAGS_GUI = -std=c99 -mwindows
+LDFLAGS = -lgdi32 -lole32 -luuid
 
 SRC = \
-	src/main.c \
 	src/utils/utils.c \
 	src/it_file/it_file.c \
 	src/tm_file/tm_file.c \
@@ -37,10 +39,26 @@ SRC = \
 
 OBJ = ${SRC:.c=.o}
 
+SRC_CLI = $(SRC) src/main.c
+OBJ_CLI = ${SRC_CLI:.c=.o}
+SRC_GUI = \
+	$(SRC) \
+	src/main_gui.c \
+	src/gui/main_window.c \
+	src/gui/utils_gui.c \
+	src/gui/it_mod_list.c \
+
+OBJ_GUI = ${SRC_GUI:.c=.o}
+
 all: ObsCureFileParser
 
-ObsCureFileParser: $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $^
+ObsCureFileParser: $(OBJ_CLI)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+gui: ObsCureFileParserGUI
+
+ObsCureFileParserGUI: $(OBJ_GUI)
+	$(CC) $(CFLAGS_GUI) -o $@ $^ $(LDFLAGS)
 
 clean:
-	$(RM) ObsCureFileParser $(OBJ)
+	$(RM) ObsCureFileParser ObsCureFileParserGUI $(OBJ_GUI) $(OBJ_CLI)
