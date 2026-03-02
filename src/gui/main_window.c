@@ -41,11 +41,30 @@ void create_it_mod_list()
     {
         char button_text[7] = {0};
         sprintf(button_text, "0x%04X", items[i]->item_id);
-        HWND itemIdButtonHwnd = CreateWindow("BUTTON", button_text,
-            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+
+        // Item ID button
+        HWND itemIdButtonHwnd = CreateWindow("BUTTON", "" /*button_text*/,
+            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP,
             20, 80 + (i * 80), 60, 60, thisHwnd, (HMENU)ITEM_ID_BUTTON_IDS_START + i, thisHInstance, NULL);
+
+        // image of the Item ID button
+        char image_filename[512] = {0};
+        sprintf(image_filename, ".\\resources\\items\\%s.bmp", item_name_from_id(items[i]->item_id));
+        HBITMAP itemBitmap = (HBITMAP)LoadImage(GetModuleHandle(NULL),
+            image_filename, IMAGE_BITMAP, 60, 60, LR_LOADFROMFILE);
+
+        if (itemBitmap == NULL)
+        {
+            sprintf(image_filename, ".\\resources\\items\\%s.bmp", "NO_ITEM_ID");
+            itemBitmap = (HBITMAP)LoadImage(GetModuleHandle(NULL),
+                image_filename, IMAGE_BITMAP, 60, 60, LR_LOADFROMFILE);
+        }
+
+        // setting the image
+        SendMessage(itemIdButtonHwnd, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)itemBitmap);
+
         it_mod_list *next = make_iml(NULL, i, itemIdButtonHwnd,
-            ITEM_ID_BUTTON_IDS_START + i, items[i]);
+            ITEM_ID_BUTTON_IDS_START + i, itemBitmap, items[i]);
         p->next = next;
         p = p->next;
     }

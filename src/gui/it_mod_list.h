@@ -18,13 +18,14 @@ typedef struct it_mod_list
     size_t item_id_index;
     HWND item_id_button_hwnd;
     int item_id_button_id;
+    HBITMAP item_id_button_bmp;
 
     // the item associated with this column
     it_item *item;
 } it_mod_list;
 
 it_mod_list *make_iml(it_mod_list *next, size_t index, HWND item_id_button_hwnd,
-    int item_id_button_id, it_item *item);
+    int item_id_button_id, HBITMAP item_id_button_bmp, it_item *item);
 it_mod_list *make_iml_sentinel(void);
 void free_destroy_iml(it_mod_list *iml);
 
