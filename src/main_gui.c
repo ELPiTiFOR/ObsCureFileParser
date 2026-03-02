@@ -7,17 +7,14 @@
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    thisHInstance = hInstance;
-
-    /*
+    // loading Icon
     HICON hIcon = LoadImage(
         NULL,
-        "icon_ocsgm.ico",
+        "icon_ocfp.ico",
         IMAGE_ICON,
         0, 0,
         LR_LOADFROMFILE | LR_DEFAULTSIZE
     );
-    */
 
     // registering main window class
     WNDCLASS wc = {0};
@@ -27,12 +24,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.lpszClassName = MAIN_WINDOW_CLASS_NAME;
     wc.hbrBackground = CreateSolidBrush(RGB(255, 255, 255));
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    /*
     if (hIcon != NULL) {
         wc.hIcon = hIcon;
         //wc.hIconSm = hIcon;
     }
-    */
     RegisterClass(&wc);
 
     // the window
@@ -59,6 +54,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     );
 
     thisHwnd = hwnd;
+    thisHInstance = hInstance;
 
     // buttons, etc of the main window
     create_main_window_elements(hwnd, hInstance);

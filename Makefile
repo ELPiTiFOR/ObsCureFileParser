@@ -1,5 +1,5 @@
 CC = "C:\Program Files\CodeBlocks\MinGW\bin\gcc.exe"
-#WR = "C:\Program Files\CodeBlocks\MinGW\bin\windres.exe"
+WR = "C:\Program Files\CodeBlocks\MinGW\bin\windres.exe"
 #CFLAGS = -Wall -Werror -pedantic -std=c99
 CPPFLAGS = \
 	-Isrc \
@@ -50,6 +50,9 @@ SRC_GUI = \
 
 OBJ_GUI = ${SRC_GUI:.c=.o}
 
+resources/resources.o: resources/resources.rc
+	$(WR) $^ -o $@
+
 all: ObsCureFileParser
 
 ObsCureFileParser: $(OBJ_CLI)
@@ -57,7 +60,7 @@ ObsCureFileParser: $(OBJ_CLI)
 
 gui: ObsCureFileParserGUI
 
-ObsCureFileParserGUI: $(OBJ_GUI)
+ObsCureFileParserGUI: $(OBJ_GUI) resources/resources.o
 	$(CC) $(CFLAGS_GUI) -o $@ $^ $(LDFLAGS)
 
 clean:

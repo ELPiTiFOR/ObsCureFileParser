@@ -13,7 +13,7 @@ int SelectFolder(HWND hwnd, char *path, int size)
         pfd->lpVtbl->GetOptions(pfd, &dwOptions);
         pfd->lpVtbl->SetOptions(pfd, dwOptions | FOS_PICKFOLDERS);
         
-        pfd->lpVtbl->SetTitle(pfd, L"Selecciona una carpeta");
+        pfd->lpVtbl->SetTitle(pfd, L"Select a folder");
         
         if (SUCCEEDED(pfd->lpVtbl->Show(pfd, hwnd)))
         {
@@ -52,7 +52,7 @@ int SelectFile(HWND hwnd, char *path, int size)
         //pfd->lpVtbl->GetOptions(pfd, &dwOptions);
         //pfd->lpVtbl->SetOptions(pfd, dwOptions | FOS_PICKFOLDERS);
         
-        pfd->lpVtbl->SetTitle(pfd, L"Selecciona una carpeta");
+        pfd->lpVtbl->SetTitle(pfd, L"Select a file");
         
         if (SUCCEEDED(pfd->lpVtbl->Show(pfd, hwnd)))
         {
