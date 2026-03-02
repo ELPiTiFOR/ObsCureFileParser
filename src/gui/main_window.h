@@ -8,6 +8,8 @@
 #define SAVE_IT_BUTTON_ID 3
 #define UP_IT_BUTTON_ID 4
 #define DOWN_IT_BUTTON_ID 5
+#define TOP_IT_BUTTON_ID 6
+#define BOT_IT_BUTTON_ID 7
 
 #define ITEM_ID_BUTTON_IDS_START 1000
 

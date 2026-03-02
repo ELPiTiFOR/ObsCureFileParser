@@ -105,6 +105,14 @@ void create_main_window_elements(HWND hwnd, HINSTANCE hInstance)
     CreateWindow("BUTTON", "Down", WS_TABSTOP | WS_VISIBLE | WS_CHILD |
         BS_DEFPUSHBUTTON, 650, 410, 40, 40, hwnd, (HMENU)DOWN_IT_BUTTON_ID,
         hInstance, NULL);
+
+    CreateWindow("BUTTON", "Top", WS_TABSTOP | WS_VISIBLE | WS_CHILD |
+        BS_DEFPUSHBUTTON, 650, 290, 40, 40, hwnd, (HMENU)TOP_IT_BUTTON_ID,
+        hInstance, NULL);
+
+    CreateWindow("BUTTON", "Bot", WS_TABSTOP | WS_VISIBLE | WS_CHILD |
+        BS_DEFPUSHBUTTON, 650, 470, 40, 40, hwnd, (HMENU)BOT_IT_BUTTON_ID,
+        hInstance, NULL);
 }
 
 LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
@@ -159,6 +167,11 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
         }
         else if (LOWORD(wParam) == DOWN_IT_BUTTON_ID)
         {
+            if (!curr_it)
+            {
+                break;
+            }
+
             if (current_it_list_offset + entries_per_page >= curr_it->len_items)
             {
                 //we can do nothing or we can set the offset
@@ -167,6 +180,33 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             }
 
             current_it_list_offset += entries_per_page;
+            refresh_it_mod_list();
+        }
+        else if (LOWORD(wParam) == TOP_IT_BUTTON_ID)
+        {
+            if (current_it_list_offset == 0)
+            {
+                break;
+            }
+
+            current_it_list_offset = 0;
+            refresh_it_mod_list();
+        }
+        else if (LOWORD(wParam) == BOT_IT_BUTTON_ID)
+        {
+            if (!curr_it)
+            {
+                break;
+            }
+
+            size_t final_offset = (curr_it->len_items / entries_per_page)
+                * entries_per_page;
+            if (final_offset == current_it_list_offset)
+            {
+                break;
+            }
+
+            current_it_list_offset = final_offset;
             refresh_it_mod_list();
         }
 
