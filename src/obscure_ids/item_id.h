@@ -1,7 +1,7 @@
 #ifndef ITEM_ID_H
 #define ITEM_ID_H
 
-#define NB_ITEM_IDS 36
+#define NB_ITEM_IDS 43
 
 typedef enum
 {
@@ -26,18 +26,25 @@ typedef enum
     HANDGUN_AMMO = 0x0132,
     STATUETTE = 0x0191,
     SAFE = 0x0192,
+    HOOK = 0x0194,
+    FUSES = 0x0195,
+    WOOD_PLANK = 0x0197,
+    NEEDLE = 0x0199,
     SCREWDRIVER = 0x019A,
+    PIECE_OF_PAPER = 0x019B,
     LEVER = 0x019C,
+    FILM = 0x01F5,
     PHOTO = 0x01F6,
     DOCUMENT = 0x01F7,
     MAP = 0x01F8,
-    KEY_ = 0x0259,
+    BASEMENT_PLAN = 0x01F9,
+    KEY = 0x0259,
     DISC = 0x025A,
     TAPE = 0x025B,
     PLIERS = 0x025C,
     WHEEL = 0x025E,
     MEDKIT = 0x025F,
-    FILM_24 = 0x0260,
+    CELLPHONE = 0x0260,
     VIDEO_TAPE = 0x0261,
     REEL_OF_WIRE = 0x0263,
     ENERGY_DRINK = 0x0264,
