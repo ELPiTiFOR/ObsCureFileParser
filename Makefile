@@ -45,6 +45,7 @@ SRC_GUI = \
 	$(SRC) \
 	src/main_gui.c \
 	src/gui/main_window.c \
+	src/gui/item_id_window.c \
 	src/gui/utils_gui.c \
 	src/gui/it_mod_list.c \
 

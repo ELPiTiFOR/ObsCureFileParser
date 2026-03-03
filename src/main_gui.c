@@ -3,6 +3,7 @@
 #include <shobjidl.h> 
 #include <windows.h>
 
+#include "item_id_window.h"
 #include "main_window.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -29,6 +30,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         //wc.hIconSm = hIcon;
     }
     RegisterClass(&wc);
+
+    // registering item id window class
+    WNDCLASS item_id_wc = {0};
+    item_id_wc.style = CS_HREDRAW | CS_VREDRAW;
+    item_id_wc.lpfnWndProc = ItemIdWindowProc;
+    item_id_wc.hInstance = hInstance;
+    item_id_wc.lpszClassName = ITEM_ID_WINDOW_CLASS_NAME;
+    item_id_wc.hbrBackground = CreateSolidBrush(RGB(255, 255, 255));
+    item_id_wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    if (hIcon != NULL) {
+        item_id_wc.hIcon = hIcon;
+        //item_id_wc.hIconSm = hIcon;
+    }
+    RegisterClass(&item_id_wc);
 
     // the window
     HWND hwnd = CreateWindowEx(

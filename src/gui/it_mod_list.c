@@ -19,6 +19,7 @@ it_mod_list *make_iml(it_mod_list *next, HWND index_text_hwnd, size_t index,
 
     // TODO: determine the next fields:
     //res->item_id_index = item_id_index;
+    res->item = item;
 }
 
 it_mod_list *make_iml_sentinel(void)

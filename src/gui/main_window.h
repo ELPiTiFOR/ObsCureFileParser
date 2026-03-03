@@ -3,6 +3,8 @@
 
 #include <windows.h>
 
+#include "it_mod_list.h"
+
 #define SELECTED_IT_FILE_TEXT_ID 1
 #define LOAD_IT_BUTTON_ID 2
 #define SAVE_IT_BUTTON_ID 3
@@ -14,9 +16,12 @@
 #define ITEM_ID_BUTTON_IDS_START 1000
 
 extern char MAIN_WINDOW_CLASS_NAME[];
-
 extern HWND thisHwnd;
 extern HINSTANCE thisHInstance;
+
+extern it_mod_list *selected_item;
+
+void refresh_it_mod_list();
 
 void create_main_window_elements(HWND hwnd, HINSTANCE hInstance);
 LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,

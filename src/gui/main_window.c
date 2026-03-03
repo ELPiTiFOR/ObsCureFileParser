@@ -3,28 +3,36 @@
 #include <stdio.h>
 
 #include "it_file.h"
+#include "item_id_window.h"
 #include "it_mod_list.h"
 #include "utils_gui.h"
 
+// Main window info
 char MAIN_WINDOW_CLASS_NAME[] = "MainWindowClass";
-it_file *curr_it = NULL;
-HWND selectedItFileTextHwnd;
-
 HWND thisHwnd;
 HINSTANCE thisHInstance;
 
+// the IT structure we're modifying
+it_file *curr_it = NULL;
+
+// Text showing file path
+HWND selectedItFileTextHwnd;
+
+// List of items
 size_t current_it_list_offset = 0;
 size_t entries_per_page = 9;
-
 it_mod_list *iml = NULL;
+it_mod_list *selected_item = NULL;
 
 void create_it_mod_list()
 {
     it_item **items = curr_it->items + current_it_list_offset;
+
     // TODO: check that iml == NULL?
     iml = make_iml_sentinel();
     it_mod_list *p = iml;
 
+    // How many entries we're going to show
     // TODO: refacto (macro MIN()?)
     size_t entries;
     size_t nb_remaining_items = curr_it->len_items - current_it_list_offset;
@@ -40,6 +48,7 @@ void create_it_mod_list()
     // TODO: the index starts at 0, check if the sentinel is being "printed"!
     for (size_t i = 0; i < entries; i++)
     {
+        // Unused right now, but could be useful in the future
         char button_text[7] = {0};
         sprintf(button_text, "0x%04X", items[i]->item_id);
 
@@ -51,9 +60,9 @@ void create_it_mod_list()
             (HMENU)0, thisHInstance, NULL);
 
         // Item ID button
-        HWND itemIdButtonHwnd = CreateWindow("BUTTON", "" /*button_text*/,
+        HWND itemIdButtonHwnd = CreateWindow("BUTTON", "",
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP,
-            65, 80 + (i * 80), 60, 60, thisHwnd, (HMENU)ITEM_ID_BUTTON_IDS_START + i, thisHInstance, NULL);
+            65, 80 + (i * 80), 60, 60, thisHwnd, (HMENU)(ITEM_ID_BUTTON_IDS_START + i), thisHInstance, NULL);
 
         // image of the Item ID button
         char image_filename[512] = {0};
@@ -73,6 +82,7 @@ void create_it_mod_list()
 
         it_mod_list *next = make_iml(NULL, indexTextHwnd, i, itemIdButtonHwnd,
             ITEM_ID_BUTTON_IDS_START + i, itemBitmap, items[i]);
+
         p->next = next;
         p = p->next;
     }
@@ -115,6 +125,34 @@ void create_main_window_elements(HWND hwnd, HINSTANCE hInstance)
         hInstance, NULL);
 }
 
+// Check which Item ID button has been pressed,
+// open the Item ID Window if needed
+void check_item_id_buttons_pressed(WPARAM wParam)
+{
+    it_mod_list *p = iml->next;
+    if (!p)
+    {
+        return;
+    }
+
+    while (p)
+    {
+        if (selected_item)
+        {
+            return;
+        }
+
+        if (LOWORD(wParam) == p->item_id_button_id)
+        {
+            selected_item = p;
+            OpenItemIdWindow(thisHwnd);
+            return;
+        }
+
+        p = p->next;
+    }
+}
+
 LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
     LPARAM lParam)
 {
@@ -131,7 +169,6 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             {
                 SetDlgItemText(hwnd, SELECTED_IT_FILE_TEXT_ID, path);
                 curr_it = parse_it_file(path);
-                print_it_file(curr_it);
                 create_it_mod_list();
             }
         }
@@ -208,6 +245,10 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
 
             current_it_list_offset = final_offset;
             refresh_it_mod_list();
+        }
+        else
+        {
+            check_item_id_buttons_pressed(wParam);
         }
 
         break;
