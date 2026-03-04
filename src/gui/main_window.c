@@ -1,10 +1,15 @@
 #include "main_window.h"
 
 #include <stdio.h>
+#include <string.h>
 
+#include "document_id.h"
+#include "document_id_window.h"
 #include "it_file.h"
 #include "item_id_window.h"
 #include "it_mod_list.h"
+#include "map_id.h"
+#include "utils.h"
 #include "utils_gui.h"
 
 // Main window info
@@ -80,8 +85,62 @@ void create_it_mod_list()
         // setting the image
         SendMessage(itemIdButtonHwnd, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)itemBitmap);
 
+        // Item Location / Location ID input
+        char location[7] = {0};
+        sprintf(location, "%06X", items[i]->item_loc);
+        HWND itemLocInputHwnd = CreateWindow("EDIT", location,
+            WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL /*WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP*/,
+            135, 100 + (i * 80), 60, 20, thisHwnd, (HMENU)(ITEM_LOC_EDIT_IDS_START + i), thisHInstance, NULL);
+
+        // Extra Info / Document ID
+        // TODO refacto
+        char *document_name = NULL;
+        char document_name_buf[512] = {0};
+
+        if (items[i]->item_id == MAP)
+        {
+            document_name = map_name_from_id(items[i]->extra_info);
+            if (!document_name)
+            {
+                printf("not found map\n");
+            }
+        }
+        else if (items[i]->item_id == DOCUMENT
+            || items[i]->item_id == PHOTO
+            || items[i]->item_id == STATUETTE
+            || items[i]->item_id == PIECE_OF_PAPER)
+        {
+            document_name = document_name_from_id(items[i]->extra_info);
+        }
+        else if (items[i]->extra_info != 0)
+        {
+            sprintf(document_name_buf, "%08X", items[i]->extra_info);
+            document_name = document_name_buf;
+        }
+        else
+        {
+            sprintf(document_name_buf, "");
+            document_name = document_name_buf;
+        }
+
+        HWND extraInfoButtonHwnd = CreateWindow("BUTTON", document_name,
+            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            205, 100 + (i * 80), 250, 20, thisHwnd, (HMENU)(EXTRA_INFO_BUTTON_IDS_START + i), thisHInstance, NULL);
+
+        // multiplier
+        char multiplier_text[512] = {0};
+        sprintf(multiplier_text, "%d", items[i]->multiplier);
+        HWND multiplierInputHwnd = CreateWindow("EDIT", multiplier_text,
+            WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL /*WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP*/,
+            465, 100 + (i * 80), 60, 20, thisHwnd, (HMENU)(MULTIPLIER_EDIT_IDS_START + i), thisHInstance, NULL);
+
         it_mod_list *next = make_iml(NULL, indexTextHwnd, i, itemIdButtonHwnd,
-            ITEM_ID_BUTTON_IDS_START + i, itemBitmap, items[i]);
+            ITEM_ID_BUTTON_IDS_START + i, itemBitmap, itemLocInputHwnd, items[i]);
+        next->item_loc_input_id = ITEM_LOC_EDIT_IDS_START + i;
+        next->extra_info_button_hwnd = extraInfoButtonHwnd;
+        next->extra_info_button_id = EXTRA_INFO_BUTTON_IDS_START + i;
+        next->multiplier_hwnd = multiplierInputHwnd;
+        next->multiplier_input_id = MULTIPLIER_EDIT_IDS_START + i;
 
         p->next = next;
         p = p->next;
@@ -92,6 +151,45 @@ void refresh_it_mod_list()
 {
     free_destroy_iml(iml);
     create_it_mod_list();
+}
+
+// updates item locs AND multiplier
+void update_inputs()
+{
+    it_mod_list *p = iml->next;
+    if (!p)
+    {
+        return;
+    }
+
+    while (p)
+    {
+        char saves[512] = {0};
+        GetDlgItemText(thisHwnd, p->item_loc_input_id, saves, 512);
+        uint32_t loc = my_atoi_base(saves, 16);
+        if (!loc)
+        {
+            // what should we do when the given loc isn't valid?
+            p = p->next;
+            continue;
+        }
+
+        p->item->item_loc = loc;
+
+        // updating multiplier
+        memset(saves, 0, 512);
+        GetDlgItemText(thisHwnd, p->multiplier_input_id, saves, 512);
+        uint32_t mul = my_atoi_base(saves, 10);
+        if (!mul)
+        {
+            p = p->next;
+            continue;
+        }
+
+        p->item->multiplier = mul;
+
+        p = p->next;
+    }
 }
 
 void create_main_window_elements(HWND hwnd, HINSTANCE hInstance)
@@ -153,6 +251,37 @@ void check_item_id_buttons_pressed(WPARAM wParam)
     }
 }
 
+void check_extra_info_buttons_pressed(WPARAM wParam)
+{
+    it_mod_list *p = iml->next;
+    if (!p)
+    {
+        return;
+    }
+
+    while (p)
+    {
+        if (selected_item)
+        {
+            return;
+        }
+
+        if (LOWORD(wParam) == p->extra_info_button_id
+            && (p->item->item_id == MAP
+            || p->item->item_id == DOCUMENT
+            || p->item->item_id == PHOTO
+            || p->item->item_id == STATUETTE
+            || p->item->item_id == PIECE_OF_PAPER))
+        {
+            selected_item = p;
+            OpenDocumentIdWindow(thisHwnd);
+            return;
+        }
+
+        p = p->next;
+    }
+}
+
 LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
     LPARAM lParam)
 {
@@ -169,6 +298,7 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             {
                 SetDlgItemText(hwnd, SELECTED_IT_FILE_TEXT_ID, path);
                 curr_it = parse_it_file(path);
+                free_destroy_iml(iml);
                 create_it_mod_list();
             }
         }
@@ -183,6 +313,7 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             // Saving the changes to the same path that was loaded
             char path[512] = {0};
             GetDlgItemText(hwnd, SELECTED_IT_FILE_TEXT_ID, path, 512);
+            update_inputs();
             serialize_it_file(curr_it, path);
         }
         else if (LOWORD(wParam) == UP_IT_BUTTON_ID)
@@ -191,7 +322,9 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             {
                 break;
             }
-            else if (current_it_list_offset >= entries_per_page)
+
+            update_inputs();
+            if (current_it_list_offset >= entries_per_page)
             {
                 current_it_list_offset -= entries_per_page;
             }
@@ -209,6 +342,7 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
                 break;
             }
 
+            update_inputs();
             if (current_it_list_offset + entries_per_page >= curr_it->len_items)
             {
                 //we can do nothing or we can set the offset
@@ -226,6 +360,7 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
                 break;
             }
 
+            update_inputs();
             current_it_list_offset = 0;
             refresh_it_mod_list();
         }
@@ -243,12 +378,14 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
                 break;
             }
 
+            update_inputs();
             current_it_list_offset = final_offset;
             refresh_it_mod_list();
         }
         else
         {
             check_item_id_buttons_pressed(wParam);
+            check_extra_info_buttons_pressed(wParam);
         }
 
         break;

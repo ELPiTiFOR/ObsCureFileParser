@@ -4,6 +4,7 @@
 #include <windows.h>
 
 #include "item_id_window.h"
+#include "document_id_window.h"
 #include "main_window.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -44,6 +45,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         //item_id_wc.hIconSm = hIcon;
     }
     RegisterClass(&item_id_wc);
+
+    // registering document id window class
+    WNDCLASS document_id_wc = {0};
+    document_id_wc.style = CS_HREDRAW | CS_VREDRAW;
+    document_id_wc.lpfnWndProc = DocumentIdWindowProc;
+    document_id_wc.hInstance = hInstance;
+    document_id_wc.lpszClassName = DOCUMENT_ID_WINDOW_CLASS_NAME;
+    document_id_wc.hbrBackground = CreateSolidBrush(RGB(255, 255, 255));
+    document_id_wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    if (hIcon != NULL) {
+        document_id_wc.hIcon = hIcon;
+        //document_id_wc.hIconSm = hIcon;
+    }
+    RegisterClass(&document_id_wc);
+
 
     // the window
     HWND hwnd = CreateWindowEx(

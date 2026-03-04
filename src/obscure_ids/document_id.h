@@ -1,11 +1,16 @@
 #ifndef DOCUMENT_ID_H
 #define DOCUMENT_ID_H
 
-#define NB_DOCUMENT_IDS 21
+#define NB_DOCUMENT_IDS 27
 
 typedef enum
 {
     NO_DOCUMENT_ID = 0x000000,
+    STATUETTE_PRAYING = 0x01, // should i leave the statuettes somewhere else?
+    STATUETTE_BROKEN = 0x02,
+    STATUETTE_CROSS = 0x03,
+    STATUETTE_HANDS_BACK = 0x04,
+    PIECE_OF_PAPER_DOC = 0x020601, // should I leave this one somewhere else?
     BUILDING_OF_SCHOOL = 0x020800,
     LEONARD_STATE = 0x020801,
     LETTER_FROM_WALT_KERRIDAN = 0x020802,
@@ -25,6 +30,7 @@ typedef enum
     EXPEDITION_DOCUMENTS = 0x020819,
     EXPEDITION_PLAQUE = 0x020820,
     NECROLOGY = 0x020821,
+    ALAN_DIARY = 0x020834,
     EXPULSION_COMMUNITY = 0x020836,
 } document_id;
 

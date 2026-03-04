@@ -15,7 +15,7 @@ CPPFLAGS = \
 	-Isrc/correct_crc \
 	-Isrc/gui \
 
-CFLAGS = -std=c99
+CFLAGS = -std=c99 #-g
 CFLAGS_GUI = -std=c99 -mwindows
 LDFLAGS = -lgdi32 -lole32 -luuid
 
@@ -29,6 +29,7 @@ SRC = \
 	src/sav_file/sav_pc.c \
 	src/obscure_ids/item_id.c \
 	src/obscure_ids/document_id.c \
+	src/obscure_ids/map_id.c \
 	src/file_read/file_read.c \
 	src/file_write/file_write.c \
 	src/config/config.c \
@@ -46,6 +47,7 @@ SRC_GUI = \
 	src/main_gui.c \
 	src/gui/main_window.c \
 	src/gui/item_id_window.c \
+	src/gui/document_id_window.c \
 	src/gui/utils_gui.c \
 	src/gui/it_mod_list.c \
 

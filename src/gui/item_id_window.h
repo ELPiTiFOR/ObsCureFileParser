@@ -3,7 +3,7 @@
 
 #include <windows.h>
 
-#define ALL_ITEMS_IDS_START 2000
+#define ALL_ITEMS_IDS_START 10000
 
 extern char ITEM_ID_WINDOW_CLASS_NAME[];
 extern HWND itemIdHwnd;
