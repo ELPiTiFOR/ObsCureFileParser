@@ -23,7 +23,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = MainWindowProc;
     wc.hInstance = hInstance;
-    wc.lpszClassName = MAIN_WINDOW_CLASS_NAME;
+    wc.lpszClassName = IT_WINDOW_CLASS_NAME;
     wc.hbrBackground = CreateSolidBrush(RGB(255, 255, 255));
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     if (hIcon != NULL) {
@@ -65,7 +65,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     HWND hwnd = CreateWindowEx(
         0,
         //WS_EX_TOPMOST,
-        MAIN_WINDOW_CLASS_NAME,
+        IT_WINDOW_CLASS_NAME,
         "ObsCure File Parser",
         //WS_OVERLAPPEDWINDOW,
         0 | WS_OVERLAPPED | WS_SYSMENU | WS_MINIMIZEBOX, // | WS_VSCROLL,
@@ -84,8 +84,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         NULL
     );
 
-    thisHwnd = hwnd;
-    thisHInstance = hInstance;
+    itWindowHwnd = hwnd;
+    itWindowHInstance = hInstance;
 
     // buttons, etc of the main window
     create_main_window_elements(hwnd, hInstance);

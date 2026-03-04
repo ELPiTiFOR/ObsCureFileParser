@@ -16,7 +16,7 @@ void create_item_ids_buttons(void)
             // Button of the Item ID
             HWND itemIdButtonHwnd = CreateWindow("BUTTON", "" /*button_text*/,
                 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP,
-                20 + (i * 80), 20 + (j * 80), 60, 60, itemIdHwnd, (HMENU)(ALL_ITEMS_IDS_START + j * 7 + i), thisHInstance, NULL);
+                20 + (i * 80), 20 + (j * 80), 60, 60, itemIdHwnd, (HMENU)(ALL_ITEMS_IDS_START + j * 7 + i), itWindowHInstance, NULL);
             
             // image of the Item ID button
             char image_filename[512] = {0};

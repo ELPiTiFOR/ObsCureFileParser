@@ -12,10 +12,12 @@
 #include "utils.h"
 #include "utils_gui.h"
 
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+
 // Main window info
-char MAIN_WINDOW_CLASS_NAME[] = "MainWindowClass";
-HWND thisHwnd;
-HINSTANCE thisHInstance;
+char IT_WINDOW_CLASS_NAME[] = "ItWindowClass";
+HWND itWindowHwnd;
+HINSTANCE itWindowHInstance;
 
 // the IT structure we're modifying
 it_file *curr_it = NULL;
@@ -38,17 +40,8 @@ void create_it_mod_list()
     it_mod_list *p = iml;
 
     // How many entries we're going to show
-    // TODO: refacto (macro MIN()?)
-    size_t entries;
     size_t nb_remaining_items = curr_it->len_items - current_it_list_offset;
-    if (nb_remaining_items >= entries_per_page)
-    {
-        entries = entries_per_page;
-    }
-    else
-    {
-        entries = nb_remaining_items;
-    }
+    size_t entries = MIN(nb_remaining_items, entries_per_page);
 
     // TODO: the index starts at 0, check if the sentinel is being "printed"!
     for (size_t i = 0; i < entries; i++)
@@ -61,19 +54,22 @@ void create_it_mod_list()
         char index_text[64] = {0};
         sprintf(index_text, "%3d", current_it_list_offset + i);
         HWND indexTextHwnd = CreateWindow("STATIC", index_text, 
-            WS_VISIBLE | WS_CHILD, 20, 90 + (i * 80), 35, 20, thisHwnd,
-            (HMENU)0, thisHInstance, NULL);
+            WS_VISIBLE | WS_CHILD, 20, 90 + (i * 80), 35, 20, itWindowHwnd,
+            (HMENU)0, itWindowHInstance, NULL
+        );
 
         // Item ID button
         HWND itemIdButtonHwnd = CreateWindow("BUTTON", "",
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP,
-            65, 80 + (i * 80), 60, 60, thisHwnd, (HMENU)(ITEM_ID_BUTTON_IDS_START + i), thisHInstance, NULL);
+            65, 80 + (i * 80), 60, 60, itWindowHwnd, (HMENU)(ITEM_ID_BUTTON_IDS_START + i), itWindowHInstance, NULL
+        );
 
         // image of the Item ID button
         char image_filename[512] = {0};
         sprintf(image_filename, ".\\resources\\items\\%s.bmp", item_name_from_id(items[i]->item_id));
         HBITMAP itemBitmap = (HBITMAP)LoadImage(GetModuleHandle(NULL),
-            image_filename, IMAGE_BITMAP, 60, 60, LR_LOADFROMFILE);
+            image_filename, IMAGE_BITMAP, 60, 60, LR_LOADFROMFILE
+        );
 
         if (itemBitmap == NULL)
         {
@@ -90,52 +86,49 @@ void create_it_mod_list()
         sprintf(location, "%06X", items[i]->item_loc);
         HWND itemLocInputHwnd = CreateWindow("EDIT", location,
             WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL /*WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP*/,
-            135, 100 + (i * 80), 60, 20, thisHwnd, (HMENU)(ITEM_LOC_EDIT_IDS_START + i), thisHInstance, NULL);
+            135, 100 + (i * 80), 60, 20, itWindowHwnd, (HMENU)(ITEM_LOC_EDIT_IDS_START + i), itWindowHInstance, NULL
+        );
 
         // Extra Info / Document ID
-        // TODO refacto
-        char *document_name = NULL;
-        char document_name_buf[512] = {0};
+        char document_name[512] = {0};
 
         if (items[i]->item_id == MAP)
         {
-            document_name = map_name_from_id(items[i]->extra_info);
-            if (!document_name)
-            {
-                printf("not found map\n");
-            }
+            sprintf(document_name, "%s", map_name_from_id(items[i]->extra_info));
         }
         else if (items[i]->item_id == DOCUMENT
             || items[i]->item_id == PHOTO
             || items[i]->item_id == STATUETTE
             || items[i]->item_id == PIECE_OF_PAPER)
         {
-            document_name = document_name_from_id(items[i]->extra_info);
+            sprintf(document_name, "%s", document_name_from_id(items[i]->extra_info));
         }
         else if (items[i]->extra_info != 0)
         {
-            sprintf(document_name_buf, "%08X", items[i]->extra_info);
-            document_name = document_name_buf;
+            sprintf(document_name, "%08X", items[i]->extra_info);
         }
         else
         {
-            sprintf(document_name_buf, "");
-            document_name = document_name_buf;
+            sprintf(document_name, "");
         }
 
         HWND extraInfoButtonHwnd = CreateWindow("BUTTON", document_name,
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-            205, 100 + (i * 80), 250, 20, thisHwnd, (HMENU)(EXTRA_INFO_BUTTON_IDS_START + i), thisHInstance, NULL);
+            205, 100 + (i * 80), 250, 20, itWindowHwnd, (HMENU)(EXTRA_INFO_BUTTON_IDS_START + i), itWindowHInstance, NULL
+        );
 
         // multiplier
         char multiplier_text[512] = {0};
         sprintf(multiplier_text, "%d", items[i]->multiplier);
         HWND multiplierInputHwnd = CreateWindow("EDIT", multiplier_text,
             WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL /*WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP*/,
-            465, 100 + (i * 80), 60, 20, thisHwnd, (HMENU)(MULTIPLIER_EDIT_IDS_START + i), thisHInstance, NULL);
+            465, 100 + (i * 80), 60, 20, itWindowHwnd, (HMENU)(MULTIPLIER_EDIT_IDS_START + i), itWindowHInstance, NULL
+        );
 
         it_mod_list *next = make_iml(NULL, indexTextHwnd, i, itemIdButtonHwnd,
-            ITEM_ID_BUTTON_IDS_START + i, itemBitmap, itemLocInputHwnd, items[i]);
+            ITEM_ID_BUTTON_IDS_START + i, itemBitmap, itemLocInputHwnd, items[i]
+        );
+
         next->item_loc_input_id = ITEM_LOC_EDIT_IDS_START + i;
         next->extra_info_button_hwnd = extraInfoButtonHwnd;
         next->extra_info_button_id = EXTRA_INFO_BUTTON_IDS_START + i;
@@ -153,7 +146,7 @@ void refresh_it_mod_list()
     create_it_mod_list();
 }
 
-// updates item locs AND multiplier
+// updates item locs AND multiplier in the it_item with the values in the inputs
 void update_inputs()
 {
     it_mod_list *p = iml->next;
@@ -164,29 +157,23 @@ void update_inputs()
 
     while (p)
     {
-        char saves[512] = {0};
-        GetDlgItemText(thisHwnd, p->item_loc_input_id, saves, 512);
-        uint32_t loc = my_atoi_base(saves, 16);
-        if (!loc)
+        // updating Item Location / Location ID
+        char input_text[512] = {0};
+        GetDlgItemText(itWindowHwnd, p->item_loc_input_id, input_text, 512);
+        uint32_t loc = my_atoi_base(input_text, 16);
+        if (loc)
         {
-            // what should we do when the given loc isn't valid?
-            p = p->next;
-            continue;
+            p->item->item_loc = loc;
         }
-
-        p->item->item_loc = loc;
 
         // updating multiplier
-        memset(saves, 0, 512);
-        GetDlgItemText(thisHwnd, p->multiplier_input_id, saves, 512);
-        uint32_t mul = my_atoi_base(saves, 10);
-        if (!mul)
+        memset(input_text, 0, 512);
+        GetDlgItemText(itWindowHwnd, p->multiplier_input_id, input_text, 512);
+        uint32_t mul = my_atoi_base(input_text, 10);
+        if (mul)
         {
-            p = p->next;
-            continue;
+            p->item->multiplier = mul;
         }
-
-        p->item->multiplier = mul;
 
         p = p->next;
     }
@@ -243,7 +230,7 @@ void check_item_id_buttons_pressed(WPARAM wParam)
         if (LOWORD(wParam) == p->item_id_button_id)
         {
             selected_item = p;
-            OpenItemIdWindow(thisHwnd);
+            OpenItemIdWindow(itWindowHwnd);
             return;
         }
 
@@ -274,7 +261,7 @@ void check_extra_info_buttons_pressed(WPARAM wParam)
             || p->item->item_id == PIECE_OF_PAPER))
         {
             selected_item = p;
-            OpenDocumentIdWindow(thisHwnd);
+            OpenDocumentIdWindow(itWindowHwnd);
             return;
         }
 
@@ -298,8 +285,7 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             {
                 SetDlgItemText(hwnd, SELECTED_IT_FILE_TEXT_ID, path);
                 curr_it = parse_it_file(path);
-                free_destroy_iml(iml);
-                create_it_mod_list();
+                refresh_it_mod_list();
             }
         }
         else if (LOWORD(wParam) == SAVE_IT_BUTTON_ID)

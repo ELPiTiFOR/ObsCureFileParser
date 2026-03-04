@@ -18,9 +18,9 @@
 #define EXTRA_INFO_BUTTON_IDS_START 3000
 #define MULTIPLIER_EDIT_IDS_START 4000
 
-extern char MAIN_WINDOW_CLASS_NAME[];
-extern HWND thisHwnd;
-extern HINSTANCE thisHInstance;
+extern char IT_WINDOW_CLASS_NAME[];
+extern HWND itWindowHwnd;
+extern HINSTANCE itWindowHInstance;
 
 extern it_mod_list *selected_item;
 

@@ -38,6 +38,7 @@ void free_destroy_iml(it_mod_list *iml)
     }
 
     it_mod_list *p = iml->next;
+    it_mod_list *p2 = p;
     while (p)
     {
         DestroyWindow(p->item_id_button_hwnd);
@@ -47,5 +48,9 @@ void free_destroy_iml(it_mod_list *iml)
         DestroyWindow(p->multiplier_hwnd);
         DeleteObject(p->item_id_button_bmp);
         p = p->next;
+        free(p2);
+        p2 = p;
     }
+
+    free(iml);
 }
