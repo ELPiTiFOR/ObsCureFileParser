@@ -136,7 +136,21 @@ size_t search_position_item_loc(it_file *it, uint32_t it_loc)
     return i;
 }
 
-// doesn't allocate the item
+it_item *copy_it_item(it_item *item)
+{
+    it_item *new_item = malloc(sizeof(it_item));
+    if (!new_item)
+    {
+        fprintf(stderr, "ERROR: Couldn't malloc(it_item)\n");
+        return NULL;
+    }
+
+    *new_item = *item;
+
+    return new_item;
+}
+
+// allocates the item
 int insert_item_to_it_at(it_file *it, it_item *item, size_t i)
 {
     size_t len_items = it->len_items;
@@ -154,28 +168,14 @@ int insert_item_to_it_at(it_file *it, it_item *item, size_t i)
         items[len_items - 1 - j + i] = items[len_items - 2 - j + i];
     }
 
-    items[i] = item;
+    items[i] = copy_it_item(item);
 
     it->len_items = len_items;
     it->items = items;
     return 0;
 }
 
-it_item *copy_it_item(it_item *item)
-{
-    it_item *new_item = malloc(sizeof(it_item));
-    if (!new_item)
-    {
-        fprintf(stderr, "ERROR: Couldn't malloc(it_item)\n");
-        return NULL;
-    }
-
-    *new_item = *item;
-
-    return new_item;
-}
-
-// allocates the item
+// doesn't allocate the item
 int add_item_to_it(it_file *it, it_item *item)
 {
     size_t index = search_item_loc(it, item->item_loc);
@@ -189,9 +189,7 @@ int add_item_to_it(it_file *it, it_item *item)
         return 1;
     }
 
-    it_item *new_item = copy_it_item(item);
-
-    return insert_item_to_it_at(it, new_item, index);
+    return insert_item_to_it_at(it, item, index);
 }
 
 int edit_item_in_it(it_file *it, it_item *item)
