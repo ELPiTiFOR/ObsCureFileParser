@@ -3,6 +3,7 @@
 
 #include <windows.h>
 
+#include "diff_selector.h"
 #include "it_file.h"
 
 // this represents a row in the it_file in the GUI of this program
@@ -32,6 +33,9 @@ typedef struct it_mod_list
     // multiplier
     HWND multiplier_hwnd;
     int multiplier_input_id;
+
+    // diff
+    diff_selector diff;
 
     // the item associated with this column
     it_item *item;

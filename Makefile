@@ -50,6 +50,7 @@ SRC_GUI = \
 	src/gui/document_id_window.c \
 	src/gui/utils_gui.c \
 	src/gui/it_mod_list.c \
+	src/gui/diff_selector.c \
 
 OBJ_GUI = ${SRC_GUI:.c=.o}
 

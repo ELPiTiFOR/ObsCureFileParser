@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "diff_selector.h"
 #include "document_id.h"
 #include "document_id_window.h"
 #include "it_file.h"
@@ -13,6 +14,8 @@
 #include "utils_gui.h"
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
+
+int nb_commands = 0;
 
 // Main window info
 char IT_WINDOW_CLASS_NAME[] = "ItWindowClass";
@@ -129,6 +132,10 @@ void create_it_mod_list()
             ITEM_ID_BUTTON_IDS_START + i, itemBitmap, itemLocInputHwnd, items[i]
         );
 
+        // diff
+        make_diff_selector(&(next->diff), itWindowHwnd, itWindowHInstance,
+            535, 90 + (i * 80), i * 100, items[i]->diff_mode);
+
         next->item_loc_input_id = ITEM_LOC_EDIT_IDS_START + i;
         next->extra_info_button_hwnd = extraInfoButtonHwnd;
         next->extra_info_button_id = EXTRA_INFO_BUTTON_IDS_START + i;
@@ -175,6 +182,9 @@ void update_inputs()
             p->item->multiplier = mul;
         }
 
+        // updating diff_mode
+        p->item->diff_mode = p->diff.diff_mode;
+
         p = p->next;
     }
 }
@@ -212,45 +222,47 @@ void create_main_window_elements(HWND hwnd, HINSTANCE hInstance)
 
 // Check which Item ID button has been pressed,
 // open the Item ID Window if needed
-void check_item_id_buttons_pressed(WPARAM wParam)
+int check_item_id_buttons_pressed(WPARAM wParam)
 {
     it_mod_list *p = iml->next;
     if (!p)
     {
-        return;
+        return 0;
     }
 
     while (p)
     {
         if (selected_item)
         {
-            return;
+            return 0;
         }
 
         if (LOWORD(wParam) == p->item_id_button_id)
         {
             selected_item = p;
             OpenItemIdWindow(itWindowHwnd);
-            return;
+            return 1;
         }
 
         p = p->next;
     }
+
+    return 0;
 }
 
-void check_extra_info_buttons_pressed(WPARAM wParam)
+int check_extra_info_buttons_pressed(WPARAM wParam)
 {
     it_mod_list *p = iml->next;
     if (!p)
     {
-        return;
+        return 0;
     }
 
     while (p)
     {
         if (selected_item)
         {
-            return;
+            return 0;
         }
 
         if (LOWORD(wParam) == p->extra_info_button_id
@@ -262,21 +274,81 @@ void check_extra_info_buttons_pressed(WPARAM wParam)
         {
             selected_item = p;
             OpenDocumentIdWindow(itWindowHwnd);
-            return;
+            return 1;
         }
 
         p = p->next;
     }
+
+    return 0;
+}
+
+int check_diff_selector_buttons_pressed(WPARAM wParam)
+{
+    it_mod_list *p = iml->next;
+    if (!p)
+    {
+        return 0;
+    }
+
+    while (p)
+    {
+        if (selected_item)
+        {
+            return 0;
+        }
+
+        int diff_mask = 0;
+
+        if (LOWORD(wParam) == p->diff.easy_button_id)
+        {
+            diff_mask = 1;
+            p->diff.diff_mode ^= diff_mask;
+            update_text(&(p->diff), diff_mask);
+            return 1;
+        }
+        else if (LOWORD(wParam) == p->diff.normal_button_id)
+        {
+            diff_mask = 2;
+            p->diff.diff_mode ^= diff_mask;
+            update_text(&(p->diff), diff_mask);
+            return 1;
+        }
+        else if (LOWORD(wParam) == p->diff.hard_button_id)
+        {
+            diff_mask = 4;
+            p->diff.diff_mode ^= diff_mask;
+            update_text(&(p->diff), diff_mask);
+            return 1;
+        }
+        else if (LOWORD(wParam) == p->diff.special_button_id)
+        {
+            diff_mask = 8;
+            p->diff.diff_mode ^= diff_mask;
+            update_text(&(p->diff), diff_mask);
+            return 1;
+        }
+
+        p = p->next;
+    }
+
+    return 0;
 }
 
 LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
     LPARAM lParam)
 {
+    WORD code = HIWORD(wParam);
+
     switch (uMsg)
     {
     case WM_CREATE:
         break;
     case WM_COMMAND:
+        // if it's not a mouse click, we don't want to check the buttons
+        if (code != BN_CLICKED)
+            break;
+
         if (LOWORD(wParam) == LOAD_IT_BUTTON_ID)
         {
             // TODO: remove magic number
@@ -370,8 +442,12 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
         }
         else
         {
-            check_item_id_buttons_pressed(wParam);
-            check_extra_info_buttons_pressed(wParam);
+            if (check_item_id_buttons_pressed(wParam))
+                break;
+            if (check_extra_info_buttons_pressed(wParam))
+                break;
+            if (check_diff_selector_buttons_pressed(wParam))
+                break;
         }
 
         break;

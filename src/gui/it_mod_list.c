@@ -1,5 +1,7 @@
 #include "it_mod_list.h"
 
+#include <string.h>
+
 it_mod_list *make_iml(it_mod_list *next, HWND index_text_hwnd, size_t index,
     HWND item_id_button_hwnd, int item_id_button_id, HBITMAP item_id_button_bmp,
     HWND item_loc_input_hwnd, it_item *item)
@@ -17,6 +19,7 @@ it_mod_list *make_iml(it_mod_list *next, HWND index_text_hwnd, size_t index,
     res->item_id_button_bmp = item_id_button_bmp;
     res->index_text_hwnd = index_text_hwnd;
     res->item_loc_input_hwnd = item_loc_input_hwnd;
+    memset(&(res->diff), 0, sizeof(diff_selector));
 
     // TODO: determine the next fields:
     //res->item_id_index = item_id_index;
@@ -47,6 +50,7 @@ void free_destroy_iml(it_mod_list *iml)
         DestroyWindow(p->extra_info_button_hwnd);
         DestroyWindow(p->multiplier_hwnd);
         DeleteObject(p->item_id_button_bmp);
+        destroy_diff_selector(&(p->diff));
         p = p->next;
         free(p2);
         p2 = p;
