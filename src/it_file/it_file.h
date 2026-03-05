@@ -28,6 +28,7 @@ it_file *parse_it_file(char *path);
 int add_item_to_it(it_file *it, it_item *item);
 int edit_item_in_it(it_file *it, it_item *item);
 int remove_item_from_it(it_file *it, uint32_t item_loc);
+int insert_item_to_it_at(it_file *it, it_item *item, size_t i);
 
 int get_item_from_loc(it_file *it, uint32_t item_loc, it_item *item);
 
