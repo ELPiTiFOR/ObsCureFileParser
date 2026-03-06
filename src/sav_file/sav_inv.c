@@ -74,6 +74,7 @@ int parse_item_inventory(sav_file *sav, sav_inv_item *items, FILE *file)
 
     int error_item = 0;
     // TODO: dirty asf
+    // TODO: stop if capacity was reached
     while ((error_item = parse_item(&item, file)) == 0 || parse_ammo(sav, file) == 0)
     {
         if (!error_item)

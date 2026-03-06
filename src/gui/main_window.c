@@ -49,100 +49,7 @@ void create_it_mod_list()
     // TODO: the index starts at 0, check if the sentinel is being "printed"!
     for (size_t i = 0; i < entries; i++)
     {
-        // Unused right now, but could be useful in the future
-        char button_text[7] = {0};
-        sprintf(button_text, "0x%04X", items[i]->item_id);
-
-        // Index static text
-        char index_text[64] = {0};
-        sprintf(index_text, "%3d", current_it_list_offset + i);
-        HWND indexTextHwnd = CreateWindow("STATIC", index_text, 
-            WS_VISIBLE | WS_CHILD, 20, 90 + (i * 80), 35, 20, itWindowHwnd,
-            (HMENU)0, itWindowHInstance, NULL
-        );
-
-        // Item ID button
-        HWND itemIdButtonHwnd = CreateWindow("BUTTON", "",
-            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP,
-            65, 80 + (i * 80), 60, 60, itWindowHwnd, (HMENU)(ITEM_ID_BUTTON_IDS_START + i), itWindowHInstance, NULL
-        );
-
-        // image of the Item ID button
-        char image_filename[512] = {0};
-        sprintf(image_filename, ".\\resources\\items\\%s.bmp", item_name_from_id(items[i]->item_id));
-        HBITMAP itemBitmap = (HBITMAP)LoadImage(GetModuleHandle(NULL),
-            image_filename, IMAGE_BITMAP, 60, 60, LR_LOADFROMFILE
-        );
-
-        if (itemBitmap == NULL)
-        {
-            sprintf(image_filename, ".\\resources\\items\\%s.bmp", "NO_ITEM_ID");
-            itemBitmap = (HBITMAP)LoadImage(GetModuleHandle(NULL),
-                image_filename, IMAGE_BITMAP, 60, 60, LR_LOADFROMFILE);
-        }
-
-        // setting the image
-        SendMessage(itemIdButtonHwnd, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)itemBitmap);
-
-        // Item Location / Location ID input
-        char location[7] = {0};
-        sprintf(location, "%06X", items[i]->item_loc);
-        HWND itemLocInputHwnd = CreateWindow("EDIT", location,
-            WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL /*WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP*/,
-            135, 100 + (i * 80), 60, 20, itWindowHwnd, (HMENU)(ITEM_LOC_EDIT_IDS_START + i), itWindowHInstance, NULL
-        );
-
-        // Extra Info / Document ID
-        char document_name[512] = {0};
-
-        if (items[i]->item_id == MAP)
-        {
-            sprintf(document_name, "%s", map_name_from_id(items[i]->extra_info));
-        }
-        else if (items[i]->item_id == DOCUMENT
-            || items[i]->item_id == PHOTO
-            || items[i]->item_id == STATUETTE
-            || items[i]->item_id == PIECE_OF_PAPER)
-        {
-            sprintf(document_name, "%s", document_name_from_id(items[i]->extra_info));
-        }
-        else if (items[i]->extra_info != 0)
-        {
-            sprintf(document_name, "%08X", items[i]->extra_info);
-        }
-        else
-        {
-            sprintf(document_name, "");
-        }
-
-        HWND extraInfoButtonHwnd = CreateWindow("BUTTON", document_name,
-            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-            205, 100 + (i * 80), 250, 20, itWindowHwnd, (HMENU)(EXTRA_INFO_BUTTON_IDS_START + i), itWindowHInstance, NULL
-        );
-
-        // multiplier
-        char multiplier_text[512] = {0};
-        sprintf(multiplier_text, "%d", items[i]->multiplier);
-        HWND multiplierInputHwnd = CreateWindow("EDIT", multiplier_text,
-            WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL /*WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP*/,
-            465, 100 + (i * 80), 60, 20, itWindowHwnd, (HMENU)(MULTIPLIER_EDIT_IDS_START + i), itWindowHInstance, NULL
-        );
-
-        it_mod_list *next = make_iml(NULL, indexTextHwnd, i, itemIdButtonHwnd,
-            ITEM_ID_BUTTON_IDS_START + i, itemBitmap, itemLocInputHwnd, items[i]
-        );
-
-        // diff
-        make_diff_selector(&(next->diff), itWindowHwnd, itWindowHInstance,
-            535, 90 + (i * 80), i * 100, items[i]->diff_mode);
-
-        next->item_loc_input_id = ITEM_LOC_EDIT_IDS_START + i;
-        next->extra_info_button_hwnd = extraInfoButtonHwnd;
-        next->extra_info_button_id = EXTRA_INFO_BUTTON_IDS_START + i;
-        next->multiplier_hwnd = multiplierInputHwnd;
-        next->multiplier_input_id = MULTIPLIER_EDIT_IDS_START + i;
-
-        p->next = next;
+        p->next = create_iml_elements(20, 80, current_it_list_offset, i, items);
         p = p->next;
     }
 }
@@ -335,6 +242,29 @@ int check_diff_selector_buttons_pressed(WPARAM wParam)
     return 0;
 }
 
+int check_delete_item_buttons_pressed(WPARAM wParam)
+{
+    it_mod_list *p = iml->next;
+    if (!p)
+    {
+        return 0;
+    }
+
+    while (p)
+    {
+        if (LOWORD(wParam) == p->delete_item_button_id)
+        {
+            remove_item_from_it(curr_it, p->item->item_loc);
+            refresh_it_mod_list();
+            return 1;
+        }
+
+        p = p->next;
+    }
+
+    return 0;
+}
+
 LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
     LPARAM lParam)
 {
@@ -447,6 +377,8 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             if (check_extra_info_buttons_pressed(wParam))
                 break;
             if (check_diff_selector_buttons_pressed(wParam))
+                break;
+            if (check_delete_item_buttons_pressed(wParam))
                 break;
         }
 
