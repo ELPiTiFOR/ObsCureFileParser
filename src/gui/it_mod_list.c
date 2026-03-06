@@ -7,7 +7,7 @@
 #include "document_id.h"
 #include "item_id.h"
 #include "it_file.h"
-#include "main_window.h"
+#include "it_window.h"
 #include "map_id.h"
 
 it_mod_list *make_iml(it_mod_list *next, HWND index_text_hwnd, size_t index,

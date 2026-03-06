@@ -4,8 +4,8 @@
 #include <windows.h>
 
 #include "item_id_window.h"
+#include "it_window.h"
 #include "document_id_window.h"
-#include "main_window.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {

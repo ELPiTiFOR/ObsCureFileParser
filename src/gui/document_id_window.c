@@ -2,7 +2,7 @@
 
 #include "document_id.h"
 #include "item_id.h"
-#include "main_window.h"
+#include "it_window.h"
 #include "map_id.h"
 
 char DOCUMENT_ID_WINDOW_CLASS_NAME[] = "DocumentIdWindowClass";

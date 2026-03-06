@@ -1,4 +1,4 @@
-#include "main_window.h"
+#include "it_window.h"
 
 #include <stdio.h>
 #include <string.h>

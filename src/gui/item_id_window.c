@@ -1,6 +1,6 @@
 #include "item_id_window.h"
 
-#include "main_window.h"
+#include "it_window.h"
 
 char ITEM_ID_WINDOW_CLASS_NAME[] = "ItemIdWindowClass";
 HWND itemIdHwnd;
