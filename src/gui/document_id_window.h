@@ -3,13 +3,15 @@
 
 #include <windows.h>
 
+#include "it_mod_list.h"
+
 #define ALL_DOCUMENT_IDS_START 20000
 
 extern char DOCUMENT_ID_WINDOW_CLASS_NAME[];
 extern HWND documentIdHwnd;
-extern HINSTANCE documentIdHInstance;
+//extern HINSTANCE documentIdHInstance;
 
-void OpenDocumentIdWindow(HWND parentHwnd);
+void OpenDocumentIdWindow(HWND parentHwnd, it_mod_list **given_item);
 LRESULT CALLBACK DocumentIdWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
     LPARAM lParam);
 

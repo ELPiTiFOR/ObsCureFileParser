@@ -1,6 +1,7 @@
-#ifndef MAIN_WINDOW_H
-#define MAIN_WINDOW_H
+#ifndef IT_WINDOW_H
+#define IT_WINDOW_H
 
+#include <stddef.h>
 #include <windows.h>
 
 #include "it_mod_list.h"
@@ -18,17 +19,23 @@
 #define EXTRA_INFO_BUTTON_IDS_START 3000
 #define MULTIPLIER_EDIT_IDS_START 4000
 #define DELETE_ITEM_BUTTON_IDS_START 6000
+#define ADD_ITEM_BUTTON_IDS_START 7000
 
 extern char IT_WINDOW_CLASS_NAME[];
 extern HWND itWindowHwnd;
-extern HINSTANCE itWindowHInstance;
+//extern HINSTANCE itWindowHInstance;
 
 extern it_mod_list *selected_item;
 
+extern it_file *curr_it;
+
+extern size_t current_it_list_offset;
+
 void refresh_it_mod_list();
 
-void create_main_window_elements(HWND hwnd, HINSTANCE hInstance);
-LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
+void OpenItWindow(HWND parentHwnd);
+void create_it_window_elements(HWND hwnd, HINSTANCE hInstance);
+LRESULT CALLBACK ItWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
     LPARAM lParam);
 
-#endif /* !MAIN_WINDOW_H */
+#endif /* !IT_WINDOW_H */

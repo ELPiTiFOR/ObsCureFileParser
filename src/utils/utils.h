@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+
 // we assume buf is 4 bytes long
 void fill_buf_uint32_msb(uint32_t u, char *buf);
 // we assume buf is 4 bytes long

@@ -360,12 +360,14 @@ int reserialize_sav_file_b(char **argv, size_t i)
 
 int test(char **argv, size_t i)
 {
-    sav_file *sav = parse_sav_file("E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game2.sav");
+    sav_file *sav = parse_sav_file("E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game7.sav");
     if (!sav)
     {
         fprintf(stderr, "ERROR: Couldn't parse sav file\n");
         return 1;
     }
+
+    sav->pcs[SHANNON_PC_INDEX].health = 40;
 
     //add_item(sav, MEDKIT, 100);
     /*
@@ -374,8 +376,8 @@ int test(char **argv, size_t i)
         printf("something went wrong my boy\n");
     }
     */
-    sav->diff_mode = 0x01;
+    //sav->diff_mode = 0x01;
     //sav->shotgun_ammo = 2000;
     //sav->handgun_ammo = 2000;
-    serialize_sav_file(sav, "E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game2.sav");
+    serialize_sav_file(sav, "E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game7.sav");
 }

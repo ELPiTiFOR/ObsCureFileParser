@@ -30,7 +30,8 @@ typedef struct
 
 static void set_text(char *text, int is_true);
 void make_diff_selector(diff_selector *diff_selector, HWND parentHwnd,
-    HINSTANCE parentHInstance, int x, int y, int id_start, uint32_t diff_mode);
+    HINSTANCE parentHInstance, int x, int y, int id_start, uint32_t diff_mode,
+    int is_add);
 void update_text(diff_selector *diff, int diff_mask);
 void destroy_diff_selector(diff_selector *diff_selector);
 

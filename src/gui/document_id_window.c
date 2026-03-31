@@ -1,13 +1,16 @@
 #include "document_id_window.h"
 
+#include "add_item_window.h"
 #include "document_id.h"
 #include "item_id.h"
 #include "it_window.h"
 #include "map_id.h"
+#include "utils_gui.h"
 
 char DOCUMENT_ID_WINDOW_CLASS_NAME[] = "DocumentIdWindowClass";
 HWND documentIdHwnd;
-HINSTANCE documentIdHInstance;
+it_mod_list **selected_item_doc;
+//HINSTANCE documentIdHInstance;
 item_id selected_item_id = NO_ITEM_ID;
 size_t nb_ids = 0;
 
@@ -20,21 +23,22 @@ void create_document_ids_buttons(void)
         {
             CreateWindow("BUTTON", map_names[i],
                 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-                20, 20 + (i * 30), 250, 20, documentIdHwnd, (HMENU)(ALL_DOCUMENT_IDS_START + i), documentIdHInstance, NULL);
+                20, 20 + (i * 30), 250, 20, documentIdHwnd, (HMENU)(ALL_DOCUMENT_IDS_START + i), thisHInstance, NULL);
             continue;
         }
 
         CreateWindow("BUTTON", document_names[i],
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-            20, 20 + (i * 30), 250, 20, documentIdHwnd, (HMENU)(ALL_DOCUMENT_IDS_START + i), documentIdHInstance, NULL);
+            20, 20 + (i * 30), 250, 20, documentIdHwnd, (HMENU)(ALL_DOCUMENT_IDS_START + i), thisHInstance, NULL);
     }
 }
 
-void OpenDocumentIdWindow(HWND parentHwnd)
+void OpenDocumentIdWindow(HWND parentHwnd, it_mod_list **given_item)
 {
-    documentIdHInstance = (HINSTANCE)GetWindowLongPtr(parentHwnd, GWLP_HINSTANCE);
+    //documentIdHInstance = (HINSTANCE)GetWindowLongPtr(parentHwnd, GWLP_HINSTANCE);
 
-    selected_item_id = selected_item->item->item_id;
+    selected_item_doc = given_item;
+    selected_item_id = selected_item_doc[0]->item->item_id;
     if (selected_item_id == MAP)
     {
         nb_ids = NB_MAP_IDS;
@@ -53,7 +57,7 @@ void OpenDocumentIdWindow(HWND parentHwnd)
         290, 50 + (30 * nb_ids),
         parentHwnd,
         NULL,
-        documentIdHInstance,
+        thisHInstance,
         NULL
     );
 
@@ -78,14 +82,17 @@ void check_all_document_buttons_pressed(WPARAM wParam)
         {
             if (selected_item_id == MAP)
             {
-                selected_item->item->extra_info = map_ids[i];
+                selected_item_doc[0]->item->extra_info = map_ids[i];
             }
             else
             {
-                selected_item->item->extra_info = document_ids[i];
+                selected_item_doc[0]->item->extra_info = document_ids[i];
             }
-            selected_item = NULL;
+            if (!item_to_add || selected_item_doc[0] != item_to_add->next)
+                selected_item_doc[0] = NULL;
             refresh_it_mod_list();
+            if (item_to_add)
+                refresh_item_to_add();
             DestroyWindow(documentIdHwnd);
         }
     }
@@ -102,7 +109,8 @@ LRESULT CALLBACK DocumentIdWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
         check_all_document_buttons_pressed(wParam);
         break;
     case WM_DESTROY:
-        selected_item = NULL;
+        if (!item_to_add || selected_item_doc[0] != item_to_add->next)
+            selected_item_doc[0] = NULL;
         break;
         
     default:

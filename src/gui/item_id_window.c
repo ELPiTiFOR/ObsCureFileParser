@@ -1,10 +1,13 @@
 #include "item_id_window.h"
 
+#include "add_item_window.h"
 #include "it_window.h"
+#include "utils_gui.h"
 
 char ITEM_ID_WINDOW_CLASS_NAME[] = "ItemIdWindowClass";
 HWND itemIdHwnd;
-HINSTANCE itemIdHInstance;
+//HINSTANCE itemIdHInstance;
+it_mod_list **given_item = NULL;
 
 void create_item_ids_buttons(void)
 {
@@ -16,7 +19,7 @@ void create_item_ids_buttons(void)
             // Button of the Item ID
             HWND itemIdButtonHwnd = CreateWindow("BUTTON", "" /*button_text*/,
                 WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP,
-                20 + (i * 80), 20 + (j * 80), 60, 60, itemIdHwnd, (HMENU)(ALL_ITEMS_IDS_START + j * 7 + i), itWindowHInstance, NULL);
+                20 + (i * 80), 20 + (j * 80), 60, 60, itemIdHwnd, (HMENU)(ALL_ITEMS_IDS_START + j * 7 + i), thisHInstance, NULL);
             
             // image of the Item ID button
             char image_filename[512] = {0};
@@ -37,10 +40,11 @@ void create_item_ids_buttons(void)
     }
 }
 
-void OpenItemIdWindow(HWND parentHwnd)
+void OpenItemIdWindow(HWND parentHwnd, it_mod_list **given_item_arg)
 {
-    itemIdHInstance = (HINSTANCE)GetWindowLongPtr(parentHwnd, GWLP_HINSTANCE);
+    //itemIdHInstance = (HINSTANCE)GetWindowLongPtr(parentHwnd, GWLP_HINSTANCE);
     
+    given_item = given_item_arg;
     itemIdHwnd = CreateWindowEx(
         0,
         ITEM_ID_WINDOW_CLASS_NAME,
@@ -50,7 +54,7 @@ void OpenItemIdWindow(HWND parentHwnd)
         580 + 10, 500 + 30,
         parentHwnd,
         NULL,
-        itemIdHInstance,
+        thisHInstance,
         NULL
     );
 
@@ -73,18 +77,26 @@ void check_all_item_buttons_pressed(WPARAM wParam)
         {
             // we add 1 to skip the first id because we don't want a
             // "NO_ITEM_ID"
-            if (!selected_item)
-            {
-                printf("wtf selected item is null\n");
-            }
-            else if (!selected_item->item)
-            {
-                printf("wtf selected item->item_id is null\n");
-            }
 
-            selected_item->item->item_id = item_ids[i + 1];
-            selected_item = NULL;
+            if (!given_item)
+                printf("!given_item\n");
+            if (!given_item[0])
+                printf("!given_item[0]\n");
+            if (!given_item[0]->item)
+                printf("!given_item[0]->item\n");
+            given_item[0]->item->item_id = item_ids[i + 1];
+            // TODO: this will cause a problem if given_item is NULL
+            if (!item_to_add || *given_item != item_to_add->next)
+            {
+                *given_item = NULL; // TODO: we want to do this only for it_window
+            }
+            given_item = NULL;
+            // it window
             refresh_it_mod_list();
+            // TODO: dirty asf, and we have to refresh_it_mod_list before, which
+            // is slow. Maybe check parentHwnd?
+            if (item_to_add)
+                refresh_item_to_add();
             DestroyWindow(itemIdHwnd);
         }
     }
@@ -101,7 +113,11 @@ LRESULT CALLBACK ItemIdWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
         check_all_item_buttons_pressed(wParam);
         break;
     case WM_DESTROY:
-        selected_item = NULL;
+        if (given_item)
+        {
+            *given_item = NULL;
+            given_item = NULL;
+        }
         break;
         
     default:

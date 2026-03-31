@@ -9,6 +9,8 @@
 #include <string.h>
 #include <windows.h>
 
+extern HINSTANCE thisHInstance;
+
 int SelectFolder(HWND hwnd, char *path, int size);
 int SelectFile(HWND hwnd, char *path, int size);
 

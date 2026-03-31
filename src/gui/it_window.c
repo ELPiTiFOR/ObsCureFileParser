@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "add_item_window.h"
 #include "diff_selector.h"
 #include "document_id.h"
 #include "document_id_window.h"
@@ -13,14 +14,9 @@
 #include "utils.h"
 #include "utils_gui.h"
 
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-
-int nb_commands = 0;
-
 // Main window info
 char IT_WINDOW_CLASS_NAME[] = "ItWindowClass";
 HWND itWindowHwnd;
-HINSTANCE itWindowHInstance;
 
 // the IT structure we're modifying
 it_file *curr_it = NULL;
@@ -33,6 +29,33 @@ size_t current_it_list_offset = 0;
 size_t entries_per_page = 9;
 it_mod_list *iml = NULL;
 it_mod_list *selected_item = NULL;
+
+void OpenItWindow(HWND parentHwnd)
+{
+    itWindowHwnd = CreateWindowEx(
+        0,
+        IT_WINDOW_CLASS_NAME,
+        "ObsCure File Parser",
+        0 | WS_OVERLAPPED | WS_SYSMENU | WS_MINIMIZEBOX,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        710,
+        830,
+        NULL,
+        NULL,
+        thisHInstance,
+        NULL
+    );
+
+    if (!itWindowHwnd)
+    {
+        return;
+    }
+
+    create_it_window_elements(itWindowHwnd, thisHInstance);
+    ShowWindow(itWindowHwnd, SW_SHOW);
+    UpdateWindow(itWindowHwnd);
+}
 
 void create_it_mod_list()
 {
@@ -49,7 +72,8 @@ void create_it_mod_list()
     // TODO: the index starts at 0, check if the sentinel is being "printed"!
     for (size_t i = 0; i < entries; i++)
     {
-        p->next = create_iml_elements(20, 80, current_it_list_offset, i, items);
+        p->next = create_iml_elements(20, 80, current_it_list_offset, i, items,
+            1, itWindowHwnd);
         p = p->next;
     }
 }
@@ -72,31 +96,19 @@ void update_inputs()
     while (p)
     {
         // updating Item Location / Location ID
-        char input_text[512] = {0};
-        GetDlgItemText(itWindowHwnd, p->item_loc_input_id, input_text, 512);
-        uint32_t loc = my_atoi_base(input_text, 16);
-        if (loc)
-        {
-            p->item->item_loc = loc;
-        }
+        update_iml_item_loc(p, itWindowHwnd, p->item_loc_input_id);
 
         // updating multiplier
-        memset(input_text, 0, 512);
-        GetDlgItemText(itWindowHwnd, p->multiplier_input_id, input_text, 512);
-        uint32_t mul = my_atoi_base(input_text, 10);
-        if (mul)
-        {
-            p->item->multiplier = mul;
-        }
+        update_iml_multiplier(p, itWindowHwnd, p->multiplier_input_id);
 
-        // updating diff_mode
-        p->item->diff_mode = p->diff.diff_mode;
+        // updating diff_mode (NOT NEEDED ANYMORE)
+        //p->item->diff_mode = p->diff.diff_mode;
 
         p = p->next;
     }
 }
 
-void create_main_window_elements(HWND hwnd, HINSTANCE hInstance)
+void create_it_window_elements(HWND hwnd, HINSTANCE hInstance)
 {
     CreateWindow("BUTTON", "Load IT", WS_TABSTOP | WS_VISIBLE | WS_CHILD |
         BS_DEFPUSHBUTTON, 20, 20, 60, 40, hwnd, (HMENU)LOAD_IT_BUTTON_ID,
@@ -141,13 +153,14 @@ int check_item_id_buttons_pressed(WPARAM wParam)
     {
         if (selected_item)
         {
+            printf("selected item is not NULL, returning 0\n");
             return 0;
         }
 
         if (LOWORD(wParam) == p->item_id_button_id)
         {
             selected_item = p;
-            OpenItemIdWindow(itWindowHwnd);
+            OpenItemIdWindow(itWindowHwnd, &selected_item);
             return 1;
         }
 
@@ -180,7 +193,11 @@ int check_extra_info_buttons_pressed(WPARAM wParam)
             || p->item->item_id == PIECE_OF_PAPER))
         {
             selected_item = p;
-            OpenDocumentIdWindow(itWindowHwnd);
+            // TODO: selected item should be a pointer of pointer
+            // but there's a problem, selected_item is supposed to be null while
+            // no item is being selected, but we commented the *given_item =
+            // NULL line from item_id_window
+            OpenDocumentIdWindow(itWindowHwnd, &selected_item);
             return 1;
         }
 
@@ -205,34 +222,8 @@ int check_diff_selector_buttons_pressed(WPARAM wParam)
             return 0;
         }
 
-        int diff_mask = 0;
-
-        if (LOWORD(wParam) == p->diff.easy_button_id)
+        if (check_iml_diff_selector_buttons_pressed(p, wParam))
         {
-            diff_mask = 1;
-            p->diff.diff_mode ^= diff_mask;
-            update_text(&(p->diff), diff_mask);
-            return 1;
-        }
-        else if (LOWORD(wParam) == p->diff.normal_button_id)
-        {
-            diff_mask = 2;
-            p->diff.diff_mode ^= diff_mask;
-            update_text(&(p->diff), diff_mask);
-            return 1;
-        }
-        else if (LOWORD(wParam) == p->diff.hard_button_id)
-        {
-            diff_mask = 4;
-            p->diff.diff_mode ^= diff_mask;
-            update_text(&(p->diff), diff_mask);
-            return 1;
-        }
-        else if (LOWORD(wParam) == p->diff.special_button_id)
-        {
-            diff_mask = 8;
-            p->diff.diff_mode ^= diff_mask;
-            update_text(&(p->diff), diff_mask);
             return 1;
         }
 
@@ -265,7 +256,34 @@ int check_delete_item_buttons_pressed(WPARAM wParam)
     return 0;
 }
 
-LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
+int check_add_item_buttons_pressed(WPARAM wParam)
+{
+    printf("CHECKING ADD ITEM\n");
+    it_mod_list *p = iml->next;
+    if (!p)
+    {
+        return 0;
+    }
+
+    while (p)
+    {
+        printf("comprobando add_item %d\n", p->add_item_button_id);
+        if (LOWORD(wParam) == p->add_item_button_id)
+        {
+            printf("en el if %d\n", p->add_item_button_id);
+            OpenAddItemWindow(itWindowHwnd, p->index);
+            //remove_item_from_it(curr_it, p->item->item_loc);
+            //refresh_it_mod_list();
+            return 1;
+        }
+
+        p = p->next;
+    }
+
+    return 0;
+}
+
+LRESULT CALLBACK ItWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
     LPARAM lParam)
 {
     WORD code = HIWORD(wParam);
@@ -380,11 +398,14 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
                 break;
             if (check_delete_item_buttons_pressed(wParam))
                 break;
+            if (check_add_item_buttons_pressed(wParam))
+                break;
         }
 
         break;
     case WM_DESTROY:
-        PostQuitMessage(0);
+        // this window isn't the main window anymore
+        //PostQuitMessage(0);
         break;
         
     default:

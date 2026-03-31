@@ -46,8 +46,11 @@ SRC_GUI = \
 	$(SRC) \
 	src/main_gui.c \
 	src/gui/it_window.c \
+	src/gui/sav_window.c \
 	src/gui/item_id_window.c \
+	src/gui/add_item_window.c \
 	src/gui/document_id_window.c \
+	src/gui/choose_format_window.c \
 	src/gui/utils_gui.c \
 	src/gui/it_mod_list.c \
 	src/gui/diff_selector.c \

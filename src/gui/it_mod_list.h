@@ -41,6 +41,10 @@ typedef struct it_mod_list
     HWND delete_item_button_hwnd;
     int delete_item_button_id;
 
+    // add item button
+    HWND add_item_button_hwnd;
+    int add_item_button_id;
+
     // the item associated with this column
     it_item *item;
 } it_mod_list;
@@ -50,7 +54,10 @@ it_mod_list *make_iml(it_mod_list *next, HWND index_text_hwnd, size_t index,
     HWND item_loc_input_hwnd, it_item *item);
 it_mod_list *make_iml_sentinel(void);
 void free_destroy_iml(it_mod_list *iml);
+void update_iml_item_loc(it_mod_list *iml, HWND hwnd, int input_id);
+void update_iml_multiplier(it_mod_list *iml, HWND hwnd, int input_id);
+int check_iml_diff_selector_buttons_pressed(it_mod_list *iml, WPARAM wParam);
 it_mod_list *create_iml_elements(int x, int y, int current_offset,
-    int id_offset, it_item **items);
+    int id_offset, it_item **items, int is_add, HWND hwnd);
 
 #endif /* !IT_MOD_LIST_H */

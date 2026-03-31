@@ -9,6 +9,8 @@
 #include "it_file.h"
 #include "it_window.h"
 #include "map_id.h"
+#include "utils.h"
+#include "utils_gui.h"
 
 it_mod_list *make_iml(it_mod_list *next, HWND index_text_hwnd, size_t index,
     HWND item_id_button_hwnd, int item_id_button_id, HBITMAP item_id_button_bmp,
@@ -32,6 +34,7 @@ it_mod_list *make_iml(it_mod_list *next, HWND index_text_hwnd, size_t index,
     // TODO: determine the next fields:
     //res->item_id_index = item_id_index;
     res->item = item;
+    res->add_item_button_hwnd = (HWND)0;
 }
 
 it_mod_list *make_iml_sentinel(void)
@@ -43,6 +46,7 @@ it_mod_list *make_iml_sentinel(void)
 
 void free_destroy_iml(it_mod_list *iml)
 {
+    printf("destroying iml\n");
     if (!iml)
     {
         return;
@@ -52,6 +56,8 @@ void free_destroy_iml(it_mod_list *iml)
     it_mod_list *p2 = p;
     while (p)
     {
+        printf("destroying p:\n");
+        print_it_item(p->item);
         DestroyWindow(p->item_id_button_hwnd);
         DestroyWindow(p->index_text_hwnd);
         DestroyWindow(p->item_loc_input_hwnd);
@@ -60,6 +66,8 @@ void free_destroy_iml(it_mod_list *iml)
         DeleteObject(p->item_id_button_bmp);
         destroy_diff_selector(&(p->diff));
         DestroyWindow(p->delete_item_button_hwnd);
+        if (p->add_item_button_hwnd)
+            DestroyWindow(p->add_item_button_hwnd);
         p = p->next;
         free(p2);
         p2 = p;
@@ -68,8 +76,68 @@ void free_destroy_iml(it_mod_list *iml)
     free(iml);
 }
 
+void update_iml_item_loc(it_mod_list *iml, HWND hwnd, int input_id)
+{
+    char input_text[512] = {0};
+    GetDlgItemText(hwnd, input_id, input_text, 512);
+    uint32_t loc = my_atoi_base(input_text, 16);
+    if (loc)
+    {
+        printf("loc = %8X\n", loc);
+        iml->item->item_loc = loc;
+    }
+}
+
+void update_iml_multiplier(it_mod_list *iml, HWND hwnd, int input_id)
+{
+    char input_text[512] = {0};
+    GetDlgItemText(hwnd, input_id, input_text, 512);
+    uint32_t mul = my_atoi_base(input_text, 10);
+    if (mul)
+    {
+        iml->item->multiplier = mul;
+    }
+}
+
+int check_iml_diff_selector_buttons_pressed(it_mod_list *iml, WPARAM wParam)
+{
+    //printf("CHECKING IML DIFF SELECTOR PRESSED\nBefore:%02X\n", iml->diff.diff_mode);
+    int diff_mask = 0;
+
+    if (LOWORD(wParam) == iml->diff.easy_button_id)
+    {
+        diff_mask = 1;
+    }
+    else if (LOWORD(wParam) == iml->diff.normal_button_id)
+    {
+        diff_mask = 2;
+    }
+    else if (LOWORD(wParam) == iml->diff.hard_button_id)
+    {
+        diff_mask = 4;
+    }
+    else if (LOWORD(wParam) == iml->diff.special_button_id)
+    {
+        diff_mask = 8;
+    }
+
+    if (!diff_mask)
+    {
+        return 0;
+    }
+
+    iml->diff.diff_mode ^= diff_mask;
+    update_text(&(iml->diff), diff_mask);
+    // we transfer the info to the it_item directly
+    // this shouldn't affect performance, although there are quite a few
+    // pointers being dereferenced
+    iml->item->diff_mode = iml->diff.diff_mode;
+    //printf("After:%02X\n", iml->diff.diff_mode);
+    return 1;
+}
+
 it_mod_list *create_iml_elements(int x, int y, int current_offset,
-    int id_offset, it_item **items)
+    int id_offset, it_item **items, int is_add, HWND hwnd)
 {
     // Unused right now, but could be useful in the future
     //char button_text[7] = {0};
@@ -79,22 +147,22 @@ it_mod_list *create_iml_elements(int x, int y, int current_offset,
     char index_text[64] = {0};
     sprintf(index_text, "%3d", current_offset + id_offset);
     HWND indexTextHwnd = CreateWindow("STATIC", index_text, 
-        WS_VISIBLE | WS_CHILD, x, y + 10 + (id_offset * 80), 35, 20, itWindowHwnd,
-        (HMENU)0, itWindowHInstance, NULL
+        WS_VISIBLE | WS_CHILD, x, y + 10 + (id_offset * 80), 35, 20, hwnd,
+        (HMENU)0, thisHInstance, NULL
     );
 
     // Delete item button
     HWND deleteItemHwnd = CreateWindow("BUTTON", "X",
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-        x, y + 40 + (id_offset * 80), 20, 20, itWindowHwnd,
-        (HMENU)(DELETE_ITEM_BUTTON_IDS_START + id_offset), itWindowHInstance, NULL
+        x, y + 40 + (id_offset * 80), 20, 20, hwnd,
+        (HMENU)(DELETE_ITEM_BUTTON_IDS_START + id_offset), thisHInstance, NULL
     );
 
     // Item ID button
     HWND itemIdButtonHwnd = CreateWindow("BUTTON", "",
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_BITMAP,
-        x + 45, y + (id_offset * 80), 60, 60, itWindowHwnd,
-        (HMENU)(ITEM_ID_BUTTON_IDS_START + id_offset), itWindowHInstance, NULL
+        x + 45, y + (id_offset * 80), 60, 60, hwnd,
+        (HMENU)(ITEM_ID_BUTTON_IDS_START + id_offset), thisHInstance, NULL
     );
 
     // image of the Item ID button
@@ -120,8 +188,8 @@ it_mod_list *create_iml_elements(int x, int y, int current_offset,
     sprintf(location, "%06X", items[id_offset]->item_loc);
     HWND itemLocInputHwnd = CreateWindow("EDIT", location,
         WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
-        x + 115, y + 20 + (id_offset * 80), 60, 20, itWindowHwnd,
-        (HMENU)(ITEM_LOC_EDIT_IDS_START + id_offset), itWindowHInstance, NULL
+        x + 115, y + 20 + (id_offset * 80), 60, 20, hwnd,
+        (HMENU)(ITEM_LOC_EDIT_IDS_START + id_offset), thisHInstance, NULL
     );
 
     // Extra Info / Document ID
@@ -149,17 +217,28 @@ it_mod_list *create_iml_elements(int x, int y, int current_offset,
 
     HWND extraInfoButtonHwnd = CreateWindow("BUTTON", document_name,
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-        x + 185, y + 20 + (id_offset * 80), 250, 20, itWindowHwnd,
-        (HMENU)(EXTRA_INFO_BUTTON_IDS_START + id_offset), itWindowHInstance, NULL
+        x + 185, y + 20 + (id_offset * 80), 250, 20, hwnd,
+        (HMENU)(EXTRA_INFO_BUTTON_IDS_START + id_offset), thisHInstance, NULL
     );
+
+    // Add item button
+    HWND addItemHwnd = (HWND)0;
+    if (is_add)
+    {
+        addItemHwnd = CreateWindow("BUTTON", "Add",
+            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            x + 215, y + 40 + (id_offset * 80), 50, 20, hwnd,
+            (HMENU)(ADD_ITEM_BUTTON_IDS_START + id_offset), thisHInstance, NULL
+        );
+    }
 
     // multiplier
     char multiplier_text[512] = {0};
     sprintf(multiplier_text, "%d", items[id_offset]->multiplier);
     HWND multiplierInputHwnd = CreateWindow("EDIT", multiplier_text,
         WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
-        x + 445, y + 20 + (id_offset * 80), 60, 20, itWindowHwnd,
-        (HMENU)(MULTIPLIER_EDIT_IDS_START + id_offset), itWindowHInstance, NULL
+        x + 445, y + 20 + (id_offset * 80), 60, 20, hwnd,
+        (HMENU)(MULTIPLIER_EDIT_IDS_START + id_offset), thisHInstance, NULL
     );
 
     it_mod_list *next = make_iml(NULL, indexTextHwnd, id_offset, itemIdButtonHwnd,
@@ -167,8 +246,8 @@ it_mod_list *create_iml_elements(int x, int y, int current_offset,
     );
 
     // diff
-    make_diff_selector(&(next->diff), itWindowHwnd, itWindowHInstance,
-        x + 515, y + 10 + (id_offset * 80), id_offset * 100, items[id_offset]->diff_mode);
+    make_diff_selector(&(next->diff), hwnd, thisHInstance,
+        x + 515, y + 10 + (id_offset * 80), id_offset * 100, items[id_offset]->diff_mode, is_add);
 
     next->item_loc_input_id = ITEM_LOC_EDIT_IDS_START + id_offset;
     next->extra_info_button_hwnd = extraInfoButtonHwnd;
@@ -177,6 +256,8 @@ it_mod_list *create_iml_elements(int x, int y, int current_offset,
     next->multiplier_input_id = MULTIPLIER_EDIT_IDS_START + id_offset;
     next->delete_item_button_hwnd = deleteItemHwnd;
     next->delete_item_button_id = DELETE_ITEM_BUTTON_IDS_START + id_offset;
+    next->add_item_button_hwnd = addItemHwnd;
+    next->add_item_button_id = ADD_ITEM_BUTTON_IDS_START + id_offset;
 
     return next;
 }
