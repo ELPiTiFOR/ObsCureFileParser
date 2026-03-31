@@ -14,7 +14,7 @@
 #include "utils.h"
 #include "utils_gui.h"
 
-// Main window info
+// IT window info
 char IT_WINDOW_CLASS_NAME[] = "ItWindowClass";
 HWND itWindowHwnd;
 
@@ -61,7 +61,6 @@ void create_it_mod_list()
 {
     it_item **items = curr_it->items + current_it_list_offset;
 
-    // TODO: check that iml == NULL?
     iml = make_iml_sentinel();
     it_mod_list *p = iml;
 
@@ -69,7 +68,6 @@ void create_it_mod_list()
     size_t nb_remaining_items = curr_it->len_items - current_it_list_offset;
     size_t entries = MIN(nb_remaining_items, entries_per_page);
 
-    // TODO: the index starts at 0, check if the sentinel is being "printed"!
     for (size_t i = 0; i < entries; i++)
     {
         p->next = create_iml_elements(20, 80, current_it_list_offset, i, items,
@@ -84,7 +82,9 @@ void refresh_it_mod_list()
     create_it_mod_list();
 }
 
-// updates item locs AND multiplier in the it_item with the values in the inputs
+// updates the it_file (each it_item) so that their item locs and multipliers
+// match what is written in the inputs
+// Win32 inputs -----> it_file
 void update_inputs()
 {
     it_mod_list *p = iml->next;
@@ -100,9 +100,6 @@ void update_inputs()
 
         // updating multiplier
         update_iml_multiplier(p, itWindowHwnd, p->multiplier_input_id);
-
-        // updating diff_mode (NOT NEEDED ANYMORE)
-        //p->item->diff_mode = p->diff.diff_mode;
 
         p = p->next;
     }
@@ -258,7 +255,6 @@ int check_delete_item_buttons_pressed(WPARAM wParam)
 
 int check_add_item_buttons_pressed(WPARAM wParam)
 {
-    printf("CHECKING ADD ITEM\n");
     it_mod_list *p = iml->next;
     if (!p)
     {
@@ -267,13 +263,9 @@ int check_add_item_buttons_pressed(WPARAM wParam)
 
     while (p)
     {
-        printf("comprobando add_item %d\n", p->add_item_button_id);
         if (LOWORD(wParam) == p->add_item_button_id)
         {
-            printf("en el if %d\n", p->add_item_button_id);
             OpenAddItemWindow(itWindowHwnd, p->index);
-            //remove_item_from_it(curr_it, p->item->item_loc);
-            //refresh_it_mod_list();
             return 1;
         }
 
