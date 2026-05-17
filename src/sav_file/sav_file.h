@@ -21,6 +21,13 @@ extern config *sav_config;
 typedef struct
 {
     uint16_t len;
+    uint8_t room_id;
+    uint8_t *content;
+} sav_room_chunk;
+
+typedef struct
+{
+    uint16_t len;
     uint8_t *content;
 } sav_progress_chunk;
 
@@ -89,6 +96,9 @@ typedef struct
 
     size_t nb_chunks;
     sav_progress_chunk *progress_chunks;
+
+    size_t nb_room_chunks;
+    sav_room_chunk *room_chunks;
 } sav_file;
 
 sav_file *parse_sav_file(char *path);

@@ -68,6 +68,31 @@ int parse_progress_chunk(sav_file *sav, sav_progress_chunk *chunk, FILE *file)
 
     return 0;
 }
+int parse_room_chunk(sav_file *sav, sav_room_chunk *chunk, FILE *file)
+{
+    size_t r = 0;
+    chunk->len = read_2byte_lsb(file, &r);
+    if (chunk->len == 0)
+    {
+        // TODO: remove magic numbers
+        return 2;
+    }
+
+    chunk->room_id = read_1byte(file, &r);
+
+    uint8_t *content = calloc(chunk->len, 1);
+    if (!content)
+    {
+        fprintf(stderr, "ERROR: Couldn't calloc content of chunk\n");
+        return 1;
+    }
+
+    // the minus 1 is because of the room_id
+    r = fread(content, 1, chunk->len - 1, file);
+    chunk->content = content;
+
+    return 0;
+}
 
 int parse_progress_chunks(sav_file *sav, FILE *file)
 {
@@ -76,7 +101,7 @@ int parse_progress_chunks(sav_file *sav, FILE *file)
     sav_progress_chunk *chunks = NULL;
     sav_progress_chunk new_chunk = { 0 };
 
-    while ((status = parse_progress_chunk(sav, &new_chunk, file)) == 0)
+    while (nb_chunks < 3 && (status = parse_progress_chunk(sav, &new_chunk, file)) == 0)
     {
         nb_chunks++;
         sav_progress_chunk *chunks2 = realloc(chunks, sizeof(sav_progress_chunk) * nb_chunks);
@@ -91,6 +116,36 @@ int parse_progress_chunks(sav_file *sav, FILE *file)
 
     sav->nb_chunks = nb_chunks;
     sav->progress_chunks = chunks;
+
+    if (nb_chunks == 3)
+    {
+        return 0;
+    }
+
+    return status != 2;
+}
+int parse_room_chunks(sav_file *sav, FILE *file)
+{
+    int status = 0;
+    size_t nb_chunks = 0;
+    sav_room_chunk *chunks = NULL;
+    sav_room_chunk new_chunk = { 0 };
+
+    while ((status = parse_room_chunk(sav, &new_chunk, file)) == 0)
+    {
+        nb_chunks++;
+        sav_room_chunk *chunks2 = realloc(chunks, sizeof(sav_room_chunk) * nb_chunks);
+        if (!chunks2)
+        {
+            fprintf(stderr, "ERROR: Couldn't realloc sav_progress_chunk\n");
+            return 1;
+        }
+        chunks = chunks2;
+        chunks[nb_chunks - 1] = new_chunk;
+    }
+
+    sav->nb_room_chunks = nb_chunks;
+    sav->room_chunks = chunks;
 
     return status != 2;
 }
@@ -139,6 +194,13 @@ sav_file *parse_sav_file(char *path)
         fclose(file);
         return NULL;
     }
+
+    if (parse_room_chunks(sav, file))
+    {
+        fprintf(stderr, "ERROR: Couldn't parse room chunks %s\n", path);
+        fclose(file);
+        return NULL;
+    }
     
     fclose(file);
     return sav;
@@ -166,12 +228,28 @@ void serialize_progress_chunk(sav_progress_chunk *chunk, FILE *file)
     write_array(file, chunk->content, chunk->len);
 }
 
+void serialize_room_chunk(sav_room_chunk *chunk, FILE *file)
+{
+    write_2byte_lsb(file, chunk->len);
+    write_1byte(file, chunk->room_id);
+    write_array(file, chunk->content, chunk->len - 1);
+}
+
 void serialize_progress_chunks(sav_file *sav, FILE *file)
 {
     size_t nb_chunks = sav->nb_chunks;
     for (size_t i = 0; i < nb_chunks; i++)
     {
         serialize_progress_chunk(sav->progress_chunks + i, file);
+    }
+}
+
+void serialize_room_chunks(sav_file *sav, FILE *file)
+{
+    size_t nb_chunks = sav->nb_room_chunks;
+    for (size_t i = 0; i < nb_chunks; i++)
+    {
+        serialize_room_chunk(sav->room_chunks + i, file);
     }
 }
 
@@ -192,6 +270,8 @@ int serialize_sav_file(sav_file *sav, char *path)
 
     serialize_progress_chunks(sav, new_file);
 
+    serialize_room_chunks(sav, new_file);
+
     // filling the rest with zeros
     fseek(new_file, 0, SEEK_END);
     long written = ftell(new_file);
@@ -210,10 +290,13 @@ void print_general_info(sav_file *sav)
 {
     printf("# General info\n");
     printf("    Index: %02X\n", sav->index);
-    printf("    Room: %02X\n", sav->room);
+    printf("    Room: ");
+    print_room_id(sav->room);
     printf("    Times saved: %02X\n", sav->nb_saves);
     printf("    Diff mode: %02X\n", sav->diff_mode);
-    printf("    Time: %08X\n", sav->time);
+    //printf("    Time: %08X\n", sav->time);
+    printf("    Time: ");
+    print_time(sav->time);
 
     // the ammo are actually kind of like items, but I consider them
     // a part of the general info
@@ -247,6 +330,33 @@ void print_progress_chunk(sav_progress_chunk *chunk)
     putchar('\n');
 }
 
+void print_room_chunk(sav_room_chunk *chunk)
+{
+    size_t len = chunk->len;
+    uint8_t *content = chunk->content;
+
+    printf("Chunk length: %d\n", len);
+    printf("Room ID: ");
+    print_room_id(chunk->room_id);
+    printf("Chunk content:\n");
+    for (size_t i = 0; i < len - 1; i++)
+    {
+        if (i % 16 == 0)
+        {
+            printf("    ");
+        }
+
+        printf("%02X ", content[i]);
+
+        if ((i + 1) % 16 == 0)
+        {
+            putchar('\n');
+        }
+    }
+
+    putchar('\n');
+}
+
 void print_progress_chunks(sav_file *sav)
 {
     size_t nb_chunks = sav->nb_chunks;
@@ -256,6 +366,18 @@ void print_progress_chunks(sav_file *sav)
     {
         printf("# Chunk number %d\n", i);
         print_progress_chunk(chunks + i);
+    }
+}
+
+void print_room_chunks(sav_file *sav)
+{
+    size_t nb_chunks = sav->nb_room_chunks;
+    sav_room_chunk *chunks = sav->room_chunks;
+
+    for (size_t i = 0; i < nb_chunks; i++)
+    {
+        printf("# Room chunk number %d\n", i);
+        print_room_chunk(chunks + i);
     }
 }
 
@@ -271,7 +393,8 @@ void print_sav_file(sav_file *sav)
     }
 
     // TODO: uncomment
-    //print_progress_chunks(sav);
+    print_progress_chunks(sav);
+    print_room_chunks(sav);
 }
 
 int add_item(sav_file *sav, item_id id, uint8_t amount)

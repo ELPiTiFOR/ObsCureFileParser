@@ -19,8 +19,11 @@ uint32_t my_atoi_base(char *str, int base);
 uint32_t buf_to_long(uint8_t *buf);
 
 char *duplicate_string(char *str);
+char *duplicate_string_until(char *str, int c, size_t *index);
 
 float buf_to_float(uint8_t *buf, size_t len);
 float str_to_float(uint8_t *str, size_t len);
+
+void print_time(uint32_t time);
 
 #endif /* !UTILS_H */

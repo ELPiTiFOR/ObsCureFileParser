@@ -11,6 +11,7 @@ CPPFLAGS = \
 	-Isrc/file_write \
 	-Isrc/config \
 	-Isrc/obscure_ids \
+	-Isrc/obscure_ids/rooms_names \
 	-Isrc/my_crc \
 	-Isrc/correct_crc \
 	-Isrc/gui \
@@ -30,6 +31,7 @@ SRC = \
 	src/obscure_ids/item_id.c \
 	src/obscure_ids/document_id.c \
 	src/obscure_ids/map_id.c \
+	src/obscure_ids/rooms_names/rooms_names.c \
 	src/file_read/file_read.c \
 	src/file_write/file_write.c \
 	src/config/config.c \

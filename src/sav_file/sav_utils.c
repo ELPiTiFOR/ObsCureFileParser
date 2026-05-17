@@ -2,9 +2,26 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "item_id.h"
 #include "document_id.h"
+#include "rooms_names.h"
+
+void print_room_id(uint8_t room_id)
+{
+    printf("%02X", room_id);
+    char *name = room_name_from_hex_id(room_id);
+
+    if (!name)
+    {
+        putchar('\n');
+        return;
+    }
+
+    printf(", %s\n", name);
+    free(name);
+}
 
 void print_item_loc(uint32_t item_loc, item_id id)
 {
