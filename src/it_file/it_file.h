@@ -9,8 +9,8 @@
 
 typedef struct
 {
-    uint32_t item_id;
-    uint32_t item_loc;
+    uint32_t item_id;       // aka Item Type
+    uint32_t item_loc;      // aka Item UID
     uint32_t extra_info;
     uint32_t multiplier;
     uint32_t diff_mode;

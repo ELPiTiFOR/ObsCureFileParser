@@ -20,8 +20,8 @@ typedef struct
     uint32_t type;
     uint32_t len_content;
     // change to enum item_id!!!
-    uint32_t item_id;
-    uint32_t item_location;
+    uint32_t item_id;           // aka Item Type
+    uint32_t item_location;     // aka Item UID
     uint32_t x_pos;
     uint32_t y_pos;
     uint32_t z_pos;
