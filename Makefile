@@ -1,6 +1,7 @@
+# Change these paths if needed (only if you know what you're doing)
 CC = "C:\Program Files\CodeBlocks\MinGW\bin\gcc.exe"
 WR = "C:\Program Files\CodeBlocks\MinGW\bin\windres.exe"
-#CFLAGS = -Wall -Werror -pedantic -std=c99
+
 CPPFLAGS = \
 	-Isrc \
 	-Isrc/utils \
@@ -64,15 +65,20 @@ SRC_GUI = \
 
 OBJ_GUI = ${SRC_GUI:.c=.o}
 
-resources/resources.o: resources/resources.rc
-	$(WR) $^ -o $@
+# Build CLI and GUI
+all: cli gui
 
-all: ObsCureFileParser
+# Build CLI
+cli: ObsCureFileParser
 
 ObsCureFileParser: $(OBJ_CLI)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
+# Build GUI
 gui: ObsCureFileParserGUI
+
+resources/resources.o: resources/resources.rc
+	$(WR) $^ -o $@
 
 ObsCureFileParserGUI: $(OBJ_GUI) resources/resources.o
 	$(CC) $(CFLAGS_GUI) -o $@ $^ $(LDFLAGS)
