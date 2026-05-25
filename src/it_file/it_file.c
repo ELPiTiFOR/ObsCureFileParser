@@ -106,9 +106,10 @@ it_file *parse_it_file(char *path)
     return it;
 }
 
+// returns the index of the item at location `it_loc` if it exists
+// returns it->len_items otherwise
 size_t search_item_loc(it_file *it, uint32_t it_loc)
 {
-    //
     size_t i = 0;
     size_t len_items = it->len_items;
     it_item **items = it->items;
@@ -121,9 +122,10 @@ size_t search_item_loc(it_file *it, uint32_t it_loc)
     return i;
 }
 
+// returns the index where an item with it_loc equal to `it_loc` should
+// be placed
 size_t search_position_item_loc(it_file *it, uint32_t it_loc)
 {
-    //
     size_t i = 0;
     size_t len_items = it->len_items;
     it_item **items = it->items;
@@ -150,7 +152,7 @@ it_item *copy_it_item(it_item *item)
     return new_item;
 }
 
-// allocates the item
+// the allocation of the item is done here
 int insert_item_to_it_at(it_file *it, it_item *item, size_t i)
 {
     size_t len_items = it->len_items;
@@ -175,7 +177,7 @@ int insert_item_to_it_at(it_file *it, it_item *item, size_t i)
     return 0;
 }
 
-// doesn't allocate the item
+// the allocation of the item isn't done here
 int add_item_to_it(it_file *it, it_item *item)
 {
     size_t index = search_item_loc(it, item->item_loc);
