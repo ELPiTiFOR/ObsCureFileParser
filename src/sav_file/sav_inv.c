@@ -248,7 +248,7 @@ void print_item(sav_inv_item *item)
 {
     item_id id = item->id;
     printf("    ");
-    if (strcmp(get_config_value(sav_config, "verbose-print"), "true") == 0)
+    if (sav_config && strcmp(get_config_value(sav_config, "verbose-print"), "true") == 0)
     {
         printf("Item location: ");
         print_item_loc(item->item_loc, id);
