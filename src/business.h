@@ -20,6 +20,9 @@ int remove_item_from_tm_b(char **argv, size_t i);
 int parse_sav_file_b(char **argv, size_t i);
 int reserialize_sav_file_b(char **argv, size_t i);
 
+// hoe
+int parse_hoe_file_b(char **argv, size_t i);
+
 int test(char **argv, size_t i);
 
 #endif /* !BUSINESS_H */

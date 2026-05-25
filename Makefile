@@ -7,6 +7,7 @@ CPPFLAGS = \
 	-Isrc/it_file \
 	-Isrc/tm_file \
 	-Isrc/sav_file \
+	-Isrc/hoe_file \
 	-Isrc/file_read \
 	-Isrc/file_write \
 	-Isrc/config \
@@ -15,6 +16,7 @@ CPPFLAGS = \
 	-Isrc/my_crc \
 	-Isrc/correct_crc \
 	-Isrc/gui \
+	-Isrc/types \
 
 CFLAGS = -std=c99 #-g
 CFLAGS_GUI = -std=c99 -mwindows
@@ -28,6 +30,8 @@ SRC = \
 	src/sav_file/sav_inv.c \
 	src/sav_file/sav_utils.c \
 	src/sav_file/sav_pc.c \
+	src/hoe_file/hoe_file.c \
+	src/hoe_file/hoe_event.c \
 	src/obscure_ids/item_id.c \
 	src/obscure_ids/document_id.c \
 	src/obscure_ids/map_id.c \
@@ -39,6 +43,7 @@ SRC = \
 	src/business.c \
 	src/my_crc/my_crc.c \
 	src/correct_crc/correct_crc.c \
+	src/types/lstring.c \
 
 OBJ = ${SRC:.c=.o}
 

@@ -34,6 +34,13 @@ uint32_t read_4byte_msb(FILE *file, size_t *read)
     return res;
 }
 
+uint32_t peek_4byte_msb(FILE *file, size_t *read)
+{
+    uint32_t res = read_4byte_msb(file, read);
+    fseek(file, -4, SEEK_CUR);
+    return res;
+}
+
 uint16_t read_2byte_lsb(FILE *file, size_t *read)
 {
     uint8_t buf[2];
@@ -140,4 +147,44 @@ char *str_from_file(char *src, size_t *total_written)
     res[i] = 0;
     fclose(file);
     return res;
+}
+
+uint8_t *duplicate_content(FILE *file, size_t size)
+{
+    uint8_t *content = calloc(size, 1);
+    if (!content)
+    {
+        return NULL;
+    }
+
+    size_t r = fread(content, 1, size, file);
+    if (r != size)
+    {
+        free(content);
+        return NULL;
+    }
+
+    return content;
+}
+
+int read_lstring(FILE *file, lstring *str)
+{
+    size_t r = 0;
+    str->length = read_4byte_msb(file, &r);
+    if (is_file_at_eof(file))
+    {
+        return 1;
+    }
+
+    str->content = duplicate_content(file, str->length);
+    return !str->content;
+}
+
+int is_file_at_eof(FILE *file)
+{
+    fseek(file, 1, SEEK_CUR);
+    int eof = feof(file);
+    if (!eof)
+        fseek(file, -1, SEEK_CUR);
+    return eof;
 }
