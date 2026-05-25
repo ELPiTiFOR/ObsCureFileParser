@@ -46,12 +46,12 @@ void create_choose_format_window_elements()
     */
     
     CreateWindow("BUTTON", "IT", WS_TABSTOP | WS_VISIBLE | WS_CHILD |
-        BS_DEFPUSHBUTTON, 70, 70, 60, 60, chooseFormatHwnd, (HMENU)IT_WINDOW_BUTTON_ID,
+        BS_DEFPUSHBUTTON, 140, 70, 60, 60, chooseFormatHwnd, (HMENU)IT_WINDOW_BUTTON_ID,
         thisHInstance, NULL);
 
-    CreateWindow("BUTTON", "SAV", WS_TABSTOP | WS_VISIBLE | WS_CHILD |
-        BS_DEFPUSHBUTTON, 140, 70, 60, 60, chooseFormatHwnd, (HMENU)SAV_WINDOW_BUTTON_ID,
-        thisHInstance, NULL);
+    // CreateWindow("BUTTON", "SAV", WS_TABSTOP | WS_VISIBLE | WS_CHILD |
+    //     BS_DEFPUSHBUTTON, 140, 70, 60, 60, chooseFormatHwnd, (HMENU)SAV_WINDOW_BUTTON_ID,
+    //     thisHInstance, NULL);
 }
 
 LRESULT CALLBACK ChooseFormatWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
