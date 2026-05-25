@@ -45,9 +45,9 @@ typedef struct
     uint32_t door;
     uint8_t room;
     uint8_t _uk_is_teammate;
-    uint32_t x_pos;
-    uint32_t y_pos;
-    uint32_t z_pos;
+    float x_pos;
+    float y_pos;
+    float z_pos;
     uint8_t rot;
     uint32_t curr_weapon_loc;
     uint8_t unknown[29];

@@ -64,9 +64,9 @@ int parse_pc_info(sav_pc_info *pc, FILE *file)
     pc->room = read_1byte(file, &r);
     //fseek(file, 1, SEEK_CUR);
     pc->_uk_is_teammate = read_1byte(file, &r);
-    pc->x_pos = read_4byte_lsb(file, &r);
-    pc->y_pos = read_4byte_lsb(file, &r);
-    pc->z_pos = read_4byte_lsb(file, &r);
+    pc->x_pos = get_first_number_f_lsb(file);
+    pc->y_pos = get_first_number_f_lsb(file);
+    pc->z_pos = get_first_number_f_lsb(file);
     pc->rot = read_1byte(file, &r);
     pc->curr_weapon_loc = read_4byte_lsb(file, &r);
     fread(pc->unknown, 1, 29, file);
@@ -190,9 +190,9 @@ void serialize_pc(sav_pc_info *pc, FILE *file)
     write_4byte_lsb(file, pc->door);
     write_1byte(file, pc->room);
     write_1byte(file, pc->_uk_is_teammate);
-    write_4byte_lsb(file, pc->x_pos);
-    write_4byte_lsb(file, pc->y_pos);
-    write_4byte_lsb(file, pc->z_pos);
+    write_4byte_float_lsb(file, pc->x_pos);
+    write_4byte_float_lsb(file, pc->y_pos);
+    write_4byte_float_lsb(file, pc->z_pos);
     write_1byte(file, pc->rot);
     write_4byte_lsb(file, pc->curr_weapon_loc);
     fwrite(pc->unknown, 1, 29, file);
@@ -243,9 +243,9 @@ void print_pc_info(sav_pc_info *pc)
 {
     printf("    Door: %u\n", pc->door);
     printf("    Room: %02X\n", pc->room);
-    printf("    X pos: %d\n", pc->x_pos);
-    printf("    Y pos: %d\n", pc->y_pos);
-    printf("    Z pos: %d\n", pc->z_pos);
+    printf("    X pos: %f\n", pc->x_pos);
+    printf("    Y pos: %f\n", pc->y_pos);
+    printf("    Z pos: %f\n", pc->z_pos);
     printf("    Rotation: %hhu\n", pc->rot);
     item_id id = get_item_id_from_loc(it, pc->curr_weapon_loc);
     printf("    Current weapon: ");
