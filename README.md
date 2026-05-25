@@ -52,10 +52,15 @@ the cross button in the left part to delete the item. You can change the UID of
 the item with the leftmost text box. You can modify the multiplier associated
 with the item using the rightmost text box. You can check or uncheck the "S"
 (Special), "H" (Hard), "N" (Normal) and "E" (Easy) boxes to decide in which
-difficulties and modes the item appears. Finally, sometimes the item has another
+difficulties and modes the item appears. Sometimes the item has another
 field: the extra info. To modify it, click on the middle long button, just
 above the "Add" button, this will only work if the item is a map, a document,
-or a statuette.
+or a statuette. Finally, you can use one of the "Add" buttons to add a new item
+right next to the one for which you clicked the "Add" button. Click on it, this
+will open a new window where you can setup the new item to be added. Once you're
+done filling the fields, you can add the new item with "Add Up" and "Add Down",
+which will insert it before the original item, and after the original item
+respectively.
 
 # More info
 For more info on ObsCure formats, types, etc, check
