@@ -62,6 +62,39 @@ done filling the fields, you can add the new item with "Add Up" and "Add Down",
 which will insert it before the original item, and after the original item
 respectively.
 
+# Building with GNU Make
+A Makefile is provided to build the executable files (CLI and GUI) and library
+(DLL) for Windows. Use the following commands:
+
+To build the CLI.
+`make cli`
+
+To build the GUI.
+`make gui`
+
+To build the library for Windows.
+`make lib`
+
+To build everything.
+`make all`
+
+I recommend using the `-j` option for faster compilation.
+
+# ObsCureFileParser as a library
+If you want to use the functions of ObsCureFileParser on your own program, you
+can use `make lib` which will create a `lib` folder with the DLL, the DLL.A, an
+`include` folder with all the header files, and a CSV that is needed for some
+functions (this is not quite a good practice, I'll change this sometime). You
+can also just download the library in the Releases section of GitHub if it is
+available.
+
+Copy the folder to your own project and compile with the `-L.` flag to specify
+where your libraries will be located and `-lObsCureFileParser` to link with
+the library. You should also think of using the `-I` option to specify where
+the header files are located (if you know about programming, you already know
+what I'm talking about). When releasing your program, remember to have the CSV
+and your own executable file in the same directory, as well as the DLL.
+
 # More info
 For more info on ObsCure formats, types, etc, check
 [the documentation](https://elpitifor.github.io/ObsCureDocs).

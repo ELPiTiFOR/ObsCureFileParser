@@ -1,6 +1,7 @@
-# Change these paths if needed (only if you know what you're doing)
-CC = "C:\Program Files\CodeBlocks\MinGW\bin\gcc.exe"
-WR = "C:\Program Files\CodeBlocks\MinGW\bin\windres.exe"
+# This Makefile was made for Windows, change it if needed (only if you know what
+# you're doing)
+CC = gcc.exe
+WR = windres.exe
 
 CPPFLAGS = \
 	-Isrc \
@@ -18,6 +19,29 @@ CPPFLAGS = \
 	-Isrc/correct_crc \
 	-Isrc/gui \
 	-Isrc/types \
+
+HEAD = \
+	src/utils/utils.h \
+	src/it_file/it_file.h \
+	src/tm_file/tm_file.h \
+	src/sav_file/sav_file.h \
+	src/sav_file/sav_inv.h \
+	src/sav_file/sav_utils.h \
+	src/sav_file/sav_pc.h \
+	src/hoe_file/hoe_file.h \
+	src/hoe_file/hoe_event.h \
+	src/obscure_ids/item_id.h \
+	src/obscure_ids/document_id.h \
+	src/obscure_ids/map_id.h \
+	src/obscure_ids/rooms_names/rooms_names.h \
+	src/file_read/file_read.h \
+	src/file_write/file_write.h \
+	src/config/config.h \
+	src/commands.h \
+	src/business.h \
+	src/my_crc/my_crc.h \
+	src/correct_crc/correct_crc.h \
+	src/types/lstring.h \
 
 CFLAGS = -std=c99 #-g
 CFLAGS_GUI = -std=c99 -mwindows
@@ -65,8 +89,8 @@ SRC_GUI = \
 
 OBJ_GUI = ${SRC_GUI:.c=.o}
 
-# Build CLI and GUI
-all: cli gui
+# Build CLI, GUI and DLL
+all: cli gui lib
 
 # Build CLI
 cli: ObsCureFileParser
@@ -83,5 +107,16 @@ resources/resources.o: resources/resources.rc
 ObsCureFileParserGUI: $(OBJ_GUI) resources/resources.o
 	$(CC) $(CFLAGS_GUI) -o $@ $^ $(LDFLAGS)
 
+# Build DLL
+lib: ObsCureFileParser.dll
+
+ObsCureFileParser.dll: $(OBJ)
+	mkdir lib\include
+	$(CC) -shared -o lib\$@ $^ -Wl,--out-implib,lib\libObsCureFileParser.dll.a
+	cp $(HEAD) lib\include
+	cp "resources\Room IDs.csv" lib
+
 clean:
-	$(RM) ObsCureFileParser ObsCureFileParserGUI $(OBJ_GUI) $(OBJ_CLI)
+	$(RM) ObsCureFileParser ObsCureFileParserGUI ObsCureFileParser.dll libObsCureFileParser.dll.a \
+	$(OBJ_GUI) $(OBJ_CLI) resources/resources.o
+	$(RM) -r lib
