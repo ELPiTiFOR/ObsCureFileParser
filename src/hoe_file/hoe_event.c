@@ -20,6 +20,14 @@ int is_lstring_char(uint8_t c)
         || c == '_';
 }
 
+void placeholders_check(void *p1, void *p2, char *s)
+{
+    if (p1 != p2)
+    {
+        //fprintf(stderr, "ERROR: %p != %p (%s)\n", p1, p2, s);
+    }
+}
+
 void parse_hoe_var(hoe_var *hoe_var, FILE *file)
 {
     size_t r = 0;
@@ -64,22 +72,16 @@ int check_lstring(FILE *file, size_t *length)
     return !is_lstring_char(ch);
 }
 
-int check_instance_content(FILE *file, int start_at_06)
+int check_instance_content(FILE *file)
 {
     size_t r = 0;
     void *place = file->_Placeholder;
-    if (!start_at_06)
-    {
-        fseek(file, -4, SEEK_CUR);
-    }
+    fseek(file, -4, SEEK_CUR);
 
     uint32_t expected_6 = read_4byte_msb(file, &r);
     if (expected_6 != 0x6)
     {
-        if (start_at_06)
-        {
-            fseek(file, -4, SEEK_CUR);
-        }
+        placeholders_check(place, file->_Placeholder, "check_instance_content 1");
         return 0;
     }
 
@@ -87,12 +89,14 @@ int check_instance_content(FILE *file, int start_at_06)
     uint32_t len = read_4byte_msb(file, &r);
     if (len > 0xFFF)
     {
-        fseek(file, -5 - start_at_06 * 4, SEEK_CUR);
+        fseek(file, -5, SEEK_CUR);
+        placeholders_check(place, file->_Placeholder, "check_instance_content 2");
         return 0;
     }
     fseek(file, len - 4, SEEK_CUR);
     hoe_chunk_type type = read_4byte_msb(file, &r);
-    fseek(file, -len - 5 - start_at_06 * 4, SEEK_CUR);
+    fseek(file, -len - 5, SEEK_CUR);
+    placeholders_check(place, file->_Placeholder, "check_instance_content 3");
     return type == HOE_END || type == HOE_INSTANCE || type == HOE_EVENT;
 }
 
@@ -138,9 +142,12 @@ int check_end_of_event(FILE *file)
         if (get_first_number_f(file) == 4.0)
         {
             fseek(file, -8, SEEK_CUR);
+            placeholders_check(place, file->_Placeholder, "check_end_of_event 1");
             return 1;
         }
 
+        fseek(file, -8, SEEK_CUR);
+        placeholders_check(place, file->_Placeholder, "check_end_of_event 2");
         return 0;
         // size_t lstring_len;
         // int res = check_lstring(file, &lstring_len);
@@ -149,8 +156,9 @@ int check_end_of_event(FILE *file)
     }
     else if (type == 0x6)
     {
-        int res = check_instance_content(file, 0);
+        int res = check_instance_content(file);
         fseek(file, -4, SEEK_CUR);
+        placeholders_check(place, file->_Placeholder, "check_end_of_event 3");
         return res;
     }
     else if (type == 0x4)
@@ -159,14 +167,17 @@ int check_end_of_event(FILE *file)
         if (feof(file))
         {
             fseek(file, -4, SEEK_CUR);
+            placeholders_check(place, file->_Placeholder, "check_end_of_event 4");
             return 1;
         }
 
         fseek(file, -5, SEEK_CUR);
+        placeholders_check(place, file->_Placeholder, "check_end_of_event 5");
         return 0;
     }
 
     fseek(file, -4, SEEK_CUR);
+    placeholders_check(place, file->_Placeholder, "check_end_of_event 6");
     return 0;
 }
 
@@ -178,7 +189,7 @@ int find_lstrings_or_end_of_event(FILE *file, size_t *offset)
     uint8_t ch;
     int is_lstrings = 0;
 
-    while (!(is_lstrings = file_at_lstrings(file)) && !check_end_of_event(file)/*!check_instance_content(file, 1)*/)
+    while (!(is_lstrings = file_at_lstrings(file)) && !check_end_of_event(file))
     {
         fseek(file, 1, SEEK_CUR);
         res++;
@@ -196,6 +207,7 @@ size_t search_end_of_event(FILE *file)
     size_t r = 0;
     size_t res = 0;
     uint8_t ch;
+    void *place = file->_Placeholder;
     aux_offset = 0;
     while(!check_end_of_event(file))
     {
@@ -209,6 +221,7 @@ size_t search_end_of_event(FILE *file)
     }
 
     fseek(file, -res, SEEK_CUR);
+    placeholders_check(place, file->_Placeholder, "search_end_of_event");
     return res;
 }
 
@@ -343,7 +356,14 @@ void print_hoe_event_bytecode(hoe_event *event)
         {
             printf("        ");
         }
-        printf("%02X ", event->bytecode[i]);
+        if (is_lstring_char(event->bytecode[i]))
+        {
+            printf("%2c ", event->bytecode[i]);
+        }
+        else
+        {
+            printf("%02X ", event->bytecode[i]);
+        }
         if ((i + 1) % 16 == 0 || i == event->len_bytecode - 1)
         {
             putchar('\n');
