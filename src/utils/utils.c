@@ -252,3 +252,40 @@ void print_time(uint32_t time)
     time -= seconds * 1000;
     printf("%02u:%02u:%02u.%03u\n", hours, minutes, seconds, time);
 }
+
+int is_basic_printable(uint8_t c)
+{
+    return (c >= 'a' && c <= 'z')
+        || (c >= 'A' && c <= 'Z')
+        || (c >= '0' && c <= '9')
+        || c == '_'
+        || c == '/';
+}
+
+void print_hexdump(uint8_t *content, size_t len, size_t indent)
+{
+    for (size_t i = 0; i < len; i++)
+    {
+        if (i % 16 == 0)
+        {
+            for (size_t n = 0; n < indent; n++)
+            {
+                printf(" ");
+            }
+        }
+
+        if (is_basic_printable(content[i]))
+        {
+            printf("%2c ", content[i]);
+        }
+        else
+        {
+            printf("%02X ", content[i]);
+        }
+
+        if ((i + 1) % 16 == 0 || i == len - 1)
+        {
+            putchar('\n');
+        }
+    }
+}

@@ -22,6 +22,7 @@ int reserialize_sav_file_b(char **argv, size_t i);
 
 // hoe
 int parse_hoe_file_b(char **argv, size_t i);
+int reserialize_hoe_file_b(char **argv, size_t i);
 
 int test(char **argv, size_t i);
 

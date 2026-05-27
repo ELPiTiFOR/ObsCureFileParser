@@ -92,6 +92,7 @@ typedef struct
 } hoe_file;
 
 hoe_file *parse_hoe_file(uint8_t *path);
+int serialize_hoe_file(hoe_file *hoe, uint8_t *path);
 void print_hoe_file(hoe_file *hoe);
 
 #endif /* !HOE_FILE_H */

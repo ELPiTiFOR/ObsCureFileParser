@@ -300,6 +300,24 @@ int execute_commands(int argc, char **argv)
                 fprintf(stderr, "ERROR: Provide everything\n");
             }
         }
+        // 1: path src
+        // 1: path dst
+        if (strcmp(argv[i], "--hoe-reserialize") == 0)
+        {
+            if (argc > i + 2)
+            {
+                if (reserialize_hoe_file_b(argv, i))
+                {
+                    fprintf(stderr, "ERROR: Couldn't reserialize `.hoe` file b\n");
+                }
+
+                i += 2;
+            }
+            else
+            {
+                fprintf(stderr, "ERROR: Provide everything\n");
+            }
+        }
         if (strcmp(argv[i], "test") == 0)
         {
             test(argv, i);

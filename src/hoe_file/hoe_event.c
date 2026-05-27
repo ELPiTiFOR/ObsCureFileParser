@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "file_read.h"
+#include "file_write.h"
 #include "lstring.h"
 
 size_t aux_offset = 0;
@@ -36,9 +37,11 @@ void parse_hoe_var(hoe_var *hoe_var, FILE *file)
     {
     case HOE_INT:
         hoe_var->ivalue = read_4byte_msb(file, &r);
+        hoe_var->fvalue = 0.0;
         break;
     case HOE_FLOAT:
         hoe_var->fvalue = get_first_number_f(file);
+        hoe_var->ivalue = 0;
         break;
     default:
         break;
@@ -317,6 +320,59 @@ void free_hoe_event(hoe_event *event)
 
     free(event->hoe_vars);
     free(event->bytecode);
+}
+
+int serialize_hoe_event(hoe_event *event, FILE *file)
+{
+    write_4byte_msb(file, HOE_EVENT);
+    write_4byte_float_msb(file, event->magic_number);
+    write_4byte_msb(file, event->name.length);
+    write_array(file, event->name.content, event->name.length);
+    for (size_t i = 0; i < event->nb_uk_ints; i++)
+    {
+        write_4byte_msb(file, event->uk_ints[i]);
+    }
+
+    if (!event->is_lstrings)
+    {
+        write_array(file, event->uk_content, event->len_uk_content);
+        return 0;
+    }
+
+    write_4byte_msb(file, event->nb_lstrings);
+    for (size_t i = 0; i < event->nb_lstrings; i++)
+    {
+        write_4byte_msb(file, event->lstrings[i].length);
+        write_array(file, event->lstrings[i].content,
+            event->lstrings[i].length);
+    }
+
+    write_4byte_msb(file, event->nb_hoe_vars);
+    for (size_t i = 0; i < event->nb_hoe_vars; i++)
+    {
+        write_4byte_msb(file, event->hoe_vars[i].type);
+        switch(event->hoe_vars[i].type)
+        {
+        case HOE_INT:
+            write_4byte_msb(file, event->hoe_vars[i].ivalue);
+            break;
+        case HOE_FLOAT:
+            write_4byte_float_msb(file, event->hoe_vars[i].fvalue);
+            break;
+        }
+    }
+
+    write_4byte_msb(file, event->nb_m1);
+    for (size_t i = 0; i < event->nb_m1; i++)
+    {
+        write_4byte_msb(file, 0xFFFFFFFF);
+    }
+
+    for (size_t i = 0; i < event->len_bytecode; i++)
+    {
+        write_1byte(file, event->bytecode[i]);
+    }
+    return 0;
 }
 
 void print_hoe_event_lstrings(hoe_event *event)

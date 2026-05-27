@@ -7,6 +7,7 @@
 
 #include "hoe_event.h"
 #include "file_read.h"
+#include "file_write.h"
 #include "lstring.h"
 
 int add_hoe_chunk(hoe_file *hoe)
@@ -264,6 +265,69 @@ void free_hoe_file(hoe_file *hoe)
     free(hoe);
 }
 
+/*
+** SERIALIZE
+*/
+
+int serialize_hoe_imports(hoe_imports *imp, FILE *file)
+{
+    write_4byte_msb(file, HOE_IMPORTS);
+    write_4byte_msb(file, imp->length);
+    write_array(file, imp->content, imp->length - 4);
+    return 0;
+}
+
+int serialize_hoe_collisions(hoe_collisions *col, FILE *file)
+{
+    write_4byte_msb(file, HOE_COLLISIONS);
+    write_4byte_msb(file, col->length);
+    write_array(file, col->content, col->length - 4);
+    return 0;
+}
+
+int serialize_hoe_instance(hoe_instance *ins, FILE *file)
+{
+    write_4byte_msb(file, HOE_INSTANCE);
+    write_1byte(file, ins->uk_char);
+    write_4byte_msb(file, ins->length);
+    write_array(file, ins->content, ins->length - 4);
+    return 0;
+}
+
+int serialize_hoe_file(hoe_file *hoe, uint8_t *path)
+{
+    FILE *file = fopen(path, "wb");
+    if (!file)
+    {
+        fprintf(stderr, "ERROR: Couldn't fopen %s\n", path);
+        return 1;
+    }
+
+    write_4byte_float_msb(file, hoe->magic_number);
+    for (size_t i = 0; i < hoe->nb_chunks; i++)
+    {
+        switch (hoe->chunks[i].type)
+        {
+        case HOE_IMPORTS:
+            serialize_hoe_imports(hoe->chunks[i].content, file);
+            break;
+        case HOE_COLLISIONS:
+            serialize_hoe_collisions(hoe->chunks[i].content, file);
+            break;
+        case HOE_EVENT:
+            serialize_hoe_event(hoe->chunks[i].content, file);
+            break;
+        case HOE_INSTANCE:
+            serialize_hoe_instance(hoe->chunks[i].content, file);
+            break;
+        }
+    }
+
+    write_4byte_msb(file, HOE_END);
+    fclose(file);
+    return 0;
+}
+
 void print_hoe_collisions(hoe_collisions *col)
 {
     printf("    Length: %08X\n", col->length);
@@ -278,6 +342,7 @@ void print_hoe_instance(hoe_instance *ins)
 {
     printf("    Uk_char: %02X\n", ins->uk_char);
     printf("    Length: %08X\n", ins->length);
+    print_hexdump(ins->content, ins->length - 4, 8);
 }
 
 void print_hoe_chunk(hoe_chunk *chunk)

@@ -375,6 +375,21 @@ int parse_hoe_file_b(char **argv, size_t i)
     return 0;
 }
 
+int reserialize_hoe_file_b(char **argv, size_t i)
+{
+    hoe_file *hoe = parse_hoe_file(argv[i + 1]);
+    if (!hoe)
+    {
+        fprintf(stderr, "ERROR: Couldn't parse hoe file\n");
+        return 1;
+    }
+
+    serialize_hoe_file(hoe, argv[i + 2]);
+    free(hoe);
+
+    return 0;
+}
+
 int test(char **argv, size_t i)
 {
     sav_file *sav = parse_sav_file("E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game1.sav");

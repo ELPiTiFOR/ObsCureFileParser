@@ -26,4 +26,6 @@ float str_to_float(uint8_t *str, size_t len);
 
 void print_time(uint32_t time);
 
+void print_hexdump(uint8_t *content, size_t len, size_t indent);
+
 #endif /* !UTILS_H */

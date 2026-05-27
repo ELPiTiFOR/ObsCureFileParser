@@ -43,7 +43,7 @@ HEAD = \
 	src/correct_crc/correct_crc.h \
 	src/types/lstring.h \
 
-CFLAGS = -std=c99 #-g
+CFLAGS = -std=c99 -g
 CFLAGS_GUI = -std=c99 -mwindows
 LDFLAGS = -lgdi32 -lole32 -luuid
 
