@@ -9,6 +9,9 @@
 #define HOE_FAIL 1
 #define HOE_EOF 2
 
+#define IT_SET_TYPE_OFFSET 0xD
+#define IT_SET_UID_OFFSET 0x1A
+
 typedef enum
 {
     HOE_COLLISIONS = 0x02,
@@ -45,6 +48,13 @@ typedef struct
 
 typedef struct
 {
+    uint8_t *end_of_function_name;
+    uint32_t type;
+    uint32_t uid;
+} ItSet_args;
+
+typedef struct
+{
     float magic_number;
 
     lstring name;
@@ -67,6 +77,11 @@ typedef struct
 
     size_t len_bytecode;
     uint8_t *bytecode;
+
+    size_t nb_visible_args;
+    ItSet_args *visible_args;
+    size_t nb_contained_args;
+    ItSet_args *contained_args;
 } hoe_event;
 
 typedef struct
@@ -94,5 +109,8 @@ typedef struct
 hoe_file *parse_hoe_file(uint8_t *path);
 int serialize_hoe_file(hoe_file *hoe, uint8_t *path);
 void print_hoe_file(hoe_file *hoe);
+void free_hoe_file(hoe_file *hoe);
+void normalize_hoe_vars(hoe_file *hoe);
+void replace_item_hoe(hoe_file *hoe, uint32_t uid, item_type item);
 
 #endif /* !HOE_FILE_H */

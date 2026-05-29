@@ -4,11 +4,14 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "hoe_event.h"
+#include "item.h"
 #include "file_read.h"
 #include "file_write.h"
 #include "lstring.h"
+#include "simple_map.h"
 
 int add_hoe_chunk(hoe_file *hoe)
 {
@@ -201,6 +204,9 @@ hoe_file *parse_hoe_file(uint8_t *path)
         return NULL;
     }
 
+    // Now we analyze the bytecode to fill the It_args
+    fill_it_args(hoe);
+
     return hoe;
 }
 
@@ -373,5 +379,179 @@ void print_hoe_file(hoe_file *hoe)
     for (size_t i = 0; i < hoe->nb_chunks; i++)
     {
         print_hoe_chunk(hoe->chunks + i);
+    }
+}
+
+void set_ItSet_args_type(ItSet_args *args, uint32_t type)
+{
+    args->type = type;
+    *(uint32_t*)(args->end_of_function_name + IT_SET_TYPE_OFFSET) =
+        lsb_32(type);
+}
+
+void set_ItSet_args_uid(ItSet_args *args, uint32_t uid)
+{
+    args->uid = uid;
+    *(uint32_t*)(args->end_of_function_name + IT_SET_UID_OFFSET) =
+        lsb_32(uid);
+}
+
+int find_key_in_map_with_type_and_uid(simple_map *map, ItSet_args *args, hoe_var *hoe_vars, uint32_t *key)
+{
+    for (size_t i = 0; i < map->nb_pairs; i++)
+    {
+        if (hoe_vars[map->pairs[i].key].ivalue == args->type
+            && hoe_vars[map->pairs[i].value].ivalue == args->uid)
+        {
+            *key = map->pairs[i].key;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+void normalize_hoe_vars_with_args(hoe_event *event, ItSet_args *args,
+    size_t nb_args, simple_map *map)
+{
+    for (size_t i = 0; i < nb_args; i++)
+    {
+        uint32_t uid = 0;
+        if (simple_value_from_key(map, args[i].type, &uid) ==
+            SIMPLE_MAP_SUCCESS)
+        {
+            if (uid != args[i].uid)
+            {
+                // we check if there's already a key-value pair with the
+                // needed values
+                ItSet_args to_find =
+                {
+                    NULL,
+                    event->hoe_vars[args[i].type].ivalue,
+                    event->hoe_vars[args[i].uid].ivalue
+                };
+                uint32_t found_key = 0;
+                int found = find_key_in_map_with_type_and_uid(map, &to_find,
+                    event->hoe_vars, &found_key);
+
+                if (found)
+                {
+                    set_ItSet_args_type(args + i, found_key);
+                    continue;
+                }
+
+                // normalize
+                // add a new hoe_var
+                event->hoe_vars = realloc(event->hoe_vars,
+                    sizeof(hoe_var) * (event->nb_hoe_vars + 1));
+                event->nb_hoe_vars++;
+                event->hoe_vars[event->nb_hoe_vars - 1].type = HOE_INT;
+                event->hoe_vars[event->nb_hoe_vars - 1].ivalue =
+                    event->hoe_vars[args[i].type].ivalue;
+                event->hoe_vars[event->nb_hoe_vars - 1].fvalue = 0.0;
+
+                // change the type to the index of the new hoe_var
+                set_ItSet_args_type(args + i, event->nb_hoe_vars - 1);
+                simple_add_pair(map, event->nb_hoe_vars - 1, args[i].uid);
+            } 
+        }
+        else
+        {
+            // associate
+            simple_add_pair(map, args[i].type, args[i].uid);
+        }
+    }
+}
+
+void normalize_hoe_vars_event(hoe_event *event)
+{
+    simple_map map;
+    map.nb_pairs = 0;
+    map.pairs = NULL;
+
+    normalize_hoe_vars_with_args(event, event->visible_args, event->nb_visible_args, &map);
+    normalize_hoe_vars_with_args(event, event->contained_args, event->nb_contained_args, &map);
+
+    /*
+    for (size_t i = 0; i < nb_args; i++)
+    {
+        uint32_t uid = 0;
+        if (simple_value_from_key(&map, args[i].type, &uid) ==
+            SIMPLE_MAP_SUCCESS)
+        {
+            if (uid != args[i].uid)
+            {
+                // normalize
+                // add a new hoe_var
+                event->hoe_vars = realloc(event->hoe_vars,
+                    sizeof(hoe_var) * (event->nb_hoe_vars + 1));
+                event->nb_hoe_vars++;
+                event->hoe_vars[event->nb_hoe_vars - 1].type = HOE_INT;
+                event->hoe_vars[event->nb_hoe_vars - 1].ivalue =
+                    event->hoe_vars[args[i].type].ivalue;
+                event->hoe_vars[event->nb_hoe_vars - 1].fvalue = 0.0;
+
+                // change the type to the index of the new hoe_var
+                set_ItSet_args_type(args + i, event->nb_hoe_vars - 1);
+                simple_add_pair(&map, event->nb_hoe_vars - 1, args[i].uid);
+            } 
+        }
+        else
+        {
+            // associate
+            simple_add_pair(&map, args[i].type, args[i].uid);
+        }
+    }
+    */
+}
+
+void normalize_hoe_vars(hoe_file *hoe)
+{
+    for (size_t i = 0; i < hoe->nb_chunks; i++)
+    {
+        if (hoe->chunks[i].type == HOE_EVENT)
+        {
+            normalize_hoe_vars_event(hoe->chunks[i].content);
+        }
+    }
+}
+
+
+void replace_item_hoe_event(hoe_event *event, uint32_t uid, item_type item)
+{
+    ItSet_args *args = event->visible_args;
+    size_t nb_args = event->nb_visible_args;
+    for (size_t i = 0; i < nb_args; i++)
+    {
+        if (args[i].uid != uid)
+        {
+            continue;
+        }
+        
+        event->hoe_vars[args[i].type].ivalue = (uint32_t)(its_from_it(item));
+    }
+
+    args = event->contained_args;
+    nb_args = event->nb_contained_args;
+
+    for (size_t i = 0; i < nb_args; i++)
+    {
+        if (args[i].uid != uid)
+        {
+            continue;
+        }
+        
+        event->hoe_vars[args[i].type].ivalue = (uint32_t)(its_from_it(item));
+    }
+}
+
+void replace_item_hoe(hoe_file *hoe, uint32_t uid, item_type item);
+{
+    for (size_t i = 0; i < hoe->nb_chunks; i++)
+    {
+        if (hoe->chunks[i].type == HOE_EVENT)
+        {
+            replace_item_hoe_event(hoe->chunks[i].content, uid, item);
+        }
     }
 }

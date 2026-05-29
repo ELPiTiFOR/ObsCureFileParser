@@ -289,3 +289,30 @@ void print_hexdump(uint8_t *content, size_t len, size_t indent)
         }
     }
 }
+
+size_t search_in_array(uint8_t *array, size_t len_a, uint8_t *pattern,
+    size_t len_p)
+{
+    for (size_t i = 0; i < len_a; i++)
+    {
+        if (memcmp(array + i, pattern, len_p) == 0)
+        {
+            return i;
+        }
+    }
+
+    return len_a;
+}
+
+uint32_t lsb_32(uint32_t number)
+{
+    uint8_t buf[4];
+    buf[0] = (number & 0xff000000) >> 3*8;
+    buf[1] = (number & 0x00ff0000) >> 2*8;
+    buf[2] = (number & 0x0000ff00) >> 8;
+    buf[3] = number & 0x000000ff;
+
+    void *buf_v = buf;
+    uint32_t *buf_u = buf_v;
+    return *buf_u;
+}

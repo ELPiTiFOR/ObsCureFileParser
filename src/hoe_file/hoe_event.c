@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "file_read.h"
 #include "file_write.h"
@@ -26,6 +27,68 @@ void placeholders_check(void *p1, void *p2, char *s)
     if (p1 != p2)
     {
         //fprintf(stderr, "ERROR: %p != %p (%s)\n", p1, p2, s);
+    }
+}
+
+void fill_it_visible_args_event(hoe_event *event)
+{
+    size_t i = 0;
+    size_t found_index = 0;
+    char *str1 = "TM_ItSetVisible";
+    size_t len1 = strlen(str1);
+    event->nb_visible_args = 0;
+
+    while ((found_index = search_in_array(event->bytecode + i,
+        event->len_bytecode - i, str1, len1)) != event->len_bytecode - i)
+    {
+        event->visible_args = realloc(event->visible_args,
+            sizeof(ItSet_args) * (event->nb_visible_args + 1));
+        event->nb_visible_args++;
+
+        uint32_t type = lsb_32(*(uint32_t *)(event->bytecode + i + found_index + len1 + IT_SET_TYPE_OFFSET));
+        uint32_t uid = lsb_32(*(uint32_t *)(event->bytecode + i  + found_index + len1 + IT_SET_UID_OFFSET));
+        event->visible_args[event->nb_visible_args - 1].type = type;
+        event->visible_args[event->nb_visible_args - 1].uid = uid;
+        event->visible_args[event->nb_visible_args - 1].end_of_function_name =
+            event->bytecode + i + found_index + len1;
+        i += found_index + len1;
+    }
+}
+
+void fill_it_contained_args_event(hoe_event *event)
+{
+    size_t i = 0;
+    size_t found_index = 0;
+    event->nb_contained_args = 0;
+    char *str2 = "TM_ItSetContained";
+    size_t len2 = strlen(str2);
+
+    while ((found_index = search_in_array(event->bytecode + i,
+        event->len_bytecode - i, str2, len2)) != event->len_bytecode - i)
+    {
+        event->contained_args = realloc(event->contained_args,
+            sizeof(ItSet_args) * (event->nb_contained_args + 1));
+        event->nb_contained_args++;
+
+        uint32_t type = lsb_32(*(uint32_t *)(event->bytecode + i + found_index + len2 + IT_SET_TYPE_OFFSET));
+        uint32_t uid = lsb_32(*(uint32_t *)(event->bytecode + i  + found_index + len2 + IT_SET_UID_OFFSET));
+        event->contained_args[event->nb_contained_args - 1].type = type;
+        event->contained_args[event->nb_contained_args - 1].uid = uid;
+        event->contained_args[event->nb_contained_args - 1].end_of_function_name =
+            event->bytecode + i + found_index + len2;
+        i += found_index + len2;
+    }
+}
+
+void fill_it_args(hoe_file *hoe)
+{
+    for (size_t i = 0; i < hoe->nb_chunks; i++)
+    {
+        if (hoe->chunks[i].type == HOE_EVENT)
+        {
+            fill_it_visible_args_event(hoe->chunks[i].content);
+            fill_it_contained_args_event(hoe->chunks[i].content);
+        }
     }
 }
 
@@ -75,10 +138,32 @@ int check_lstring(FILE *file, size_t *length)
     return !is_lstring_char(ch);
 }
 
+int check_event_content(FILE *file)
+{
+    float f = get_first_number_f(file);
+    fseek(file, -4, SEEK_CUR);
+    return f == 4.0;
+}
+
+int check_hoe_end(FILE *file)
+{
+    size_t r = 0;
+    uint8_t ch = read_1byte(file, &r);
+    if (feof(file))
+    {
+        return 1;
+    }
+
+    fseek(file, -1, SEEK_CUR);
+    return 0;
+}
+
 int check_instance_content(FILE *file)
 {
     size_t r = 0;
     void *place = file->_Placeholder;
+    long original_offset = ftell(file);
+    /*
     fseek(file, -4, SEEK_CUR);
 
     uint32_t expected_6 = read_4byte_msb(file, &r);
@@ -87,6 +172,7 @@ int check_instance_content(FILE *file)
         placeholders_check(place, file->_Placeholder, "check_instance_content 1");
         return 0;
     }
+    */
 
     fseek(file, 1, SEEK_CUR);
     uint32_t len = read_4byte_msb(file, &r);
@@ -96,11 +182,37 @@ int check_instance_content(FILE *file)
         placeholders_check(place, file->_Placeholder, "check_instance_content 2");
         return 0;
     }
+
     fseek(file, len - 4, SEEK_CUR);
+    if (is_file_at_eof(file))
+    {
+        fseek(file, original_offset, SEEK_SET);
+        return 0;
+    }
+
     hoe_chunk_type type = read_4byte_msb(file, &r);
+    if (type == HOE_INSTANCE)
+    {
+        int is_instance = check_instance_content(file);
+        fseek(file, original_offset, SEEK_SET);
+        return is_instance;
+    }
+    else if (type == HOE_EVENT)
+    {
+        int is_event = check_event_content(file);
+        fseek(file, original_offset, SEEK_SET);
+        return is_event;
+    }
+    else if (type == HOE_END)
+    {
+        int is_end = check_hoe_end(file);
+        fseek(file, original_offset, SEEK_SET);
+        return is_end;
+    }
+
     fseek(file, -len - 5, SEEK_CUR);
     placeholders_check(place, file->_Placeholder, "check_instance_content 3");
-    return type == HOE_END || type == HOE_INSTANCE || type == HOE_EVENT;
+    return 0;
 }
 
 int file_at_lstring_char(FILE *file)
@@ -142,20 +254,9 @@ int check_end_of_event(FILE *file)
     uint32_t type = read_4byte_msb(file, &r);
     if (type == 0x5)
     {
-        if (get_first_number_f(file) == 4.0)
-        {
-            fseek(file, -8, SEEK_CUR);
-            placeholders_check(place, file->_Placeholder, "check_end_of_event 1");
-            return 1;
-        }
-
-        fseek(file, -8, SEEK_CUR);
-        placeholders_check(place, file->_Placeholder, "check_end_of_event 2");
-        return 0;
-        // size_t lstring_len;
-        // int res = check_lstring(file, &lstring_len);
-        // fseek(file, -8, SEEK_CUR);
-        // return res;
+        int is_event = check_event_content(file);
+        fseek(file, -4, SEEK_CUR);
+        return is_event;
     }
     else if (type == 0x6)
     {
@@ -166,17 +267,9 @@ int check_end_of_event(FILE *file)
     }
     else if (type == 0x4)
     {
-        uint8_t ch = read_1byte(file, &r);
-        if (feof(file))
-        {
-            fseek(file, -4, SEEK_CUR);
-            placeholders_check(place, file->_Placeholder, "check_end_of_event 4");
-            return 1;
-        }
-
-        fseek(file, -5, SEEK_CUR);
-        placeholders_check(place, file->_Placeholder, "check_end_of_event 5");
-        return 0;
+        int is_end = check_hoe_end(file);
+        fseek(file, -4, SEEK_CUR);
+        return is_end;
     }
 
     fseek(file, -4, SEEK_CUR);
@@ -453,6 +546,18 @@ void print_hoe_uk_ints(hoe_event *event)
     }
 }
 
+void print_hoe_event_it_args(ItSet_args *args, size_t len, char *name,
+    hoe_event *event)
+{
+    printf("    %s args:\n", name);
+    for (size_t i = 0; i < len; i++)
+    {
+        printf("        - Type: %2d (%08X), UID: %2d (%08X)\n", args[i].type,
+            event->hoe_vars[args[i].type].ivalue, args[i].uid,
+            event->hoe_vars[args[i].uid].ivalue);
+    }
+}
+
 void print_hoe_event(hoe_event *event)
 {
     printf("    Magic number: %f\n", event->magic_number);
@@ -481,4 +586,16 @@ void print_hoe_event(hoe_event *event)
     printf("    Nb_m1: %d\n", event->nb_m1);
 
     print_hoe_event_bytecode(event);
+
+    if (event->nb_visible_args)
+    {
+        print_hoe_event_it_args(event->visible_args, event->nb_visible_args, 
+            "ItSetVisible", event);
+    }
+
+    if (event->nb_contained_args)
+    {
+        print_hoe_event_it_args(event->contained_args, event->nb_contained_args,
+            "ItSetContained", event);
+    }
 }

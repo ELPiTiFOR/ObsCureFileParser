@@ -8,6 +8,7 @@
 #include "sav_file.h"
 #include "hoe_file.h"
 #include "utils.h"
+#include "room.h"
 
 int parse_it_file_b(char **argv, size_t i)
 {
@@ -390,17 +391,75 @@ int reserialize_hoe_file_b(char **argv, size_t i)
     return 0;
 }
 
+int iterate_through_hoe(char **argv, size_t i)
+{
+    uint8_t hoe_path[512] = { 0 };
+    strcpy(hoe_path, "E:\\Fran\\OBSCURE\\Game Data\\Testing ground\\");
+    size_t og_len = strlen(hoe_path);
+
+    char *str1 = "TM_ItSetVisible";
+    size_t len1 = strlen(str1);
+
+    char *str2 = "TM_ItSetContained";
+    size_t len2 = strlen(str2);
+
+    for (int i = 0; i < NB_ROOMS; i++)
+    {
+        strcat(hoe_path, path_from_ri((room_id)i));
+        strcat(hoe_path, "\\");
+        strcat(hoe_path, ristr_from_ri((room_id)i));
+        strcat(hoe_path, ".hoe");
+        hoe_file *hoe = parse_hoe_file(hoe_path);
+        printf("Checking %s\n", hoe_path);
+
+        for (size_t j = 0; j < hoe->nb_chunks; j++)
+        {
+            if (hoe->chunks[j].type == HOE_EVENT)
+            {
+                hoe_event *event = hoe->chunks[j].content;
+                size_t found_index = 0;
+                if ((found_index = search_in_array(event->bytecode, event->len_bytecode, str1,
+                    len1)) != event->len_bytecode)
+                {
+                    printf("    Found %s in %s\n", str1, hoe_path);
+                    uint32_t type = lsb_32(*(uint32_t *)(event->bytecode + found_index + len1 + 0xd));
+                    uint32_t uid = lsb_32(*(uint32_t *)(event->bytecode + found_index + len1 + 0x1a));
+                    type = event->hoe_vars[type].ivalue;
+                    uid = event->hoe_vars[uid].ivalue;
+                    printf("        type = %08X, uid = %08X\n", type, uid);
+                }
+                if ((found_index = search_in_array(event->bytecode, event->len_bytecode, str2,
+                    len2)) != event->len_bytecode)
+                {
+                    printf("    Found %s in %s\n", str2, hoe_path);
+                    uint32_t type = lsb_32(*(uint32_t *)(event->bytecode + found_index + len2 + 0xd));
+                    uint32_t uid = lsb_32(*(uint32_t *)(event->bytecode + found_index + len2 + 0x1a));
+                    type = event->hoe_vars[type].ivalue;
+                    uid = event->hoe_vars[uid].ivalue;
+                    printf("        type = %08X, uid = %08X\n", type, uid);
+                }
+            }
+        }
+
+        free_hoe_file(hoe);
+        hoe_path[og_len] = 0;
+    }
+}
+
 int test(char **argv, size_t i)
 {
-    sav_file *sav = parse_sav_file("E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game1.sav");
-    if (!sav)
-    {
-        fprintf(stderr, "ERROR: Couldn't parse sav file\n");
-        return 1;
-    }
+    hoe_file *hoe = parse_hoe_file("C:\\SteamLibrary\\steamapps\\common\\Obscure\\data\\_levels\\a\\a003\\a003.hoe");
+    normalize_hoe_vars(hoe);
+    print_hoe_file(hoe);
+    free_hoe_file(hoe);
+    // sav_file *sav = parse_sav_file("E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game1.sav");
+    // if (!sav)
+    // {
+    //     fprintf(stderr, "ERROR: Couldn't parse sav file\n");
+    //     return 1;
+    // }
 
-    //sav->pcs[SHANNON_PC_INDEX].health = 100;
-    sav->pcs[KENNY_PC_INDEX].room = 0x19;
+    // sav->pcs[KENNY_PC_INDEX].room = 0x19;
 
     //add_item(sav, MEDKIT, 100);
     /*
@@ -412,5 +471,5 @@ int test(char **argv, size_t i)
     //sav->diff_mode = 0x01;
     //sav->shotgun_ammo = 2000;
     //sav->handgun_ammo = 2000;
-    serialize_sav_file(sav, "E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game1.sav");
+    //serialize_sav_file(sav, "E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game1.sav");
 }

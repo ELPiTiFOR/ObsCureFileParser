@@ -4,6 +4,7 @@ CC = gcc.exe
 WR = windres.exe
 
 CPPFLAGS = \
+	-Ilibs/ObsCureInfoHeader \
 	-Isrc \
 	-Isrc/utils \
 	-Isrc/it_file \
@@ -43,9 +44,12 @@ HEAD = \
 	src/correct_crc/correct_crc.h \
 	src/types/lstring.h \
 
+LDFLAGS = -Llibs/
+LDLIBS = -lObsCureInfo
+
 CFLAGS = -std=c99 -g
 CFLAGS_GUI = -std=c99 -mwindows
-LDFLAGS = -lgdi32 -lole32 -luuid
+LDFLAGS_GUI = -lgdi32 -lole32 -luuid
 
 SRC = \
 	src/utils/utils.c \
@@ -69,6 +73,7 @@ SRC = \
 	src/my_crc/my_crc.c \
 	src/correct_crc/correct_crc.c \
 	src/types/lstring.c \
+	src/types/simple_map.c \
 
 OBJ = ${SRC:.c=.o}
 
@@ -96,7 +101,7 @@ all: cli gui lib
 cli: ObsCureFileParser
 
 ObsCureFileParser: $(OBJ_CLI)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS_GUI) $(LDFLAGS) $(LDLIBS)
 
 # Build GUI
 gui: ObsCureFileParserGUI
@@ -105,15 +110,15 @@ resources/resources.o: resources/resources.rc
 	$(WR) $^ -o $@
 
 ObsCureFileParserGUI: $(OBJ_GUI) resources/resources.o
-	$(CC) $(CFLAGS_GUI) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS_GUI) -o $@ $^ $(LDFLAGS_GUI) $(LDFLAGS) $(LDLIBS)
 
 # Build DLL
 lib: ObsCureFileParser.dll
 
 ObsCureFileParser.dll: $(OBJ)
-	mkdir lib\include
-	$(CC) -shared -o lib\$@ $^ -Wl,--out-implib,lib\libObsCureFileParser.dll.a
-	cp $(HEAD) lib\include
+	mkdir lib\ObsCureFileParserHeader
+	$(CC) -shared -o lib\$@ $^ $(LDFLAGS) $(LDLIBS) -Wl,--out-implib,lib\libObsCureFileParser.dll.a
+	cp $(HEAD) lib\ObsCureFileParserHeader
 	cp "resources\Room IDs.csv" lib
 
 clean:

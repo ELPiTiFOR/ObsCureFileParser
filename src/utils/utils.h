@@ -28,4 +28,9 @@ void print_time(uint32_t time);
 
 void print_hexdump(uint8_t *content, size_t len, size_t indent);
 
+size_t search_in_array(uint8_t *array, size_t len_a, uint8_t *pattern,
+    size_t len_p);
+
+uint32_t lsb_32(uint32_t number);
+
 #endif /* !UTILS_H */

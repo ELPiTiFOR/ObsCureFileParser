@@ -182,7 +182,15 @@ int read_lstring(FILE *file, lstring *str)
 
 int is_file_at_eof(FILE *file)
 {
-    fseek(file, 1, SEEK_CUR);
+    long original_offset = ftell(file);
+    size_t r = 0;
+    read_1byte(file, &r);
+    long new_offset = ftell(file);
+    if (new_offset == original_offset)
+    {
+        return 1;
+    }
+
     int eof = feof(file);
     if (!eof)
         fseek(file, -1, SEEK_CUR);
