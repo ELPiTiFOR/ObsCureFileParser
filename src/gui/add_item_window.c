@@ -100,11 +100,11 @@ LRESULT CALLBACK AddItemWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
             OpenItemIdWindow(addItemWindowHwnd, &(item_to_add->next));
         }
         else if (LOWORD(wParam) == item_to_add->next->extra_info_button_id
-            && (item_to_add->next->item->item_id == MAP
-            || item_to_add->next->item->item_id == DOCUMENT
-            || item_to_add->next->item->item_id == PHOTO
-            || item_to_add->next->item->item_id == STATUETTE
-            || item_to_add->next->item->item_id == PIECE_OF_PAPER))
+            && (item_to_add->next->item->item_id == MAP_T
+            || item_to_add->next->item->item_id == DOCUMENT_T
+            || item_to_add->next->item->item_id == PHOTO_T
+            || item_to_add->next->item->item_id == STATUETTE_T
+            || item_to_add->next->item->item_id == PIECE_OF_PAPER_T))
         {
             // TODO: selected item should be a pointer of pointer
             // but there's a problem, selected_item is supposed to be null while

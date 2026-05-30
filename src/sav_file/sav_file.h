@@ -33,7 +33,7 @@ typedef struct
 
 typedef struct
 {
-    item_id id;
+    item_type id;
     uint32_t weapon_loc;
     uint8_t quantity;
     uint8_t ammo;
@@ -61,7 +61,7 @@ typedef struct
 
 typedef struct
 {
-    item_id id;
+    item_type id;
     uint32_t item_loc;
     uint8_t quantity;
     uint32_t extra_info;
@@ -107,7 +107,7 @@ int serialize_sav_file(sav_file *sav, char *path);
 
 void print_sav_file(sav_file *sav);
 
-int add_item(sav_file *sav, item_id id, uint8_t amount);
-int add_weapon(sav_file *sav, size_t pc_index, item_id id, uint8_t ammo);
+int add_item(sav_file *sav, item_type id, uint8_t amount);
+int add_weapon(sav_file *sav, size_t pc_index, item_type id, uint8_t ammo);
 
 #endif /* !SAV_FILE_H */

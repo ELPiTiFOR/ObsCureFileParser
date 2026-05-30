@@ -545,7 +545,7 @@ void replace_item_hoe_event(hoe_event *event, uint32_t uid, item_type item)
     }
 }
 
-void replace_item_hoe(hoe_file *hoe, uint32_t uid, item_type item);
+void replace_item_hoe(hoe_file *hoe, uint32_t uid, item_type item)
 {
     for (size_t i = 0; i < hoe->nb_chunks; i++)
     {

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include "item.h"
 #include "lstring.h"
 
 #define HOE_SUCCESS 0

@@ -7,7 +7,7 @@
 #include "file_read.h"
 #include "file_write.h"
 
-#include "item_id.h"
+#include "item.h"
 
 it_item *parse_it_item(FILE *file)
 {
@@ -325,19 +325,19 @@ void print_it_file(it_file *it)
 }
 
 // FROM HERE, FUNCTIONS USE OTHER FILES/LIBS
-item_id get_item_id_from_loc(it_file *it, uint32_t item_loc)
+item_type get_item_type_from_loc(it_file *it, uint32_t item_loc)
 {
     //printf("getting item_id from loc %06X\n", item_loc);
     it_item item = {0};
     if (get_item_from_loc(it, item_loc, &item))
     {
-        return NO_ITEM_ID;
+        return NOITEM_T;
     }
 
-    return (item_id) item.item_id;
+    return (item_type) item.item_id;
 }
 
-uint32_t get_first_loc_with_id(it_file *it, item_id id)
+uint32_t get_first_loc_with_id(it_file *it, item_type id)
 {
     size_t len_items = it->len_items;
     for (size_t i = 0; i < len_items; i++)

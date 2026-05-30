@@ -15,7 +15,7 @@
 
 #include "it_file.h"
 
-#include "item_id.h"
+#include "item.h"
 #include "document_id.h"
 
 it_file *it = NULL;
@@ -397,12 +397,12 @@ void print_sav_file(sav_file *sav)
     print_room_chunks(sav);
 }
 
-int add_item(sav_file *sav, item_id id, uint8_t amount)
+int add_item(sav_file *sav, item_type id, uint8_t amount)
 {
     return add_item_to_inv(&sav->item_inventory, id, amount);
 }
 
-int add_weapon(sav_file *sav, size_t pc_index, item_id id, uint8_t ammo)
+int add_weapon(sav_file *sav, size_t pc_index, item_type id, uint8_t ammo)
 {
     return add_weapon_to_inv(sav->pcs + pc_index, id, ammo);
 }

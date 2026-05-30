@@ -9,6 +9,7 @@
 #include "hoe_file.h"
 #include "utils.h"
 #include "room.h"
+#include "item.h"
 
 int parse_it_file_b(char **argv, size_t i)
 {
@@ -449,7 +450,7 @@ int iterate_through_hoe(char **argv, size_t i)
 int test(char **argv, size_t i)
 {
     hoe_file *hoe = parse_hoe_file("C:\\SteamLibrary\\steamapps\\common\\Obscure\\data\\_levels\\a\\a003\\a003.hoe");
-    normalize_hoe_vars(hoe);
+    replace_item_hoe(hoe, 0x010181, ENERGY_DRINK);
     print_hoe_file(hoe);
     free_hoe_file(hoe);
     // sav_file *sav = parse_sav_file("E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game1.sav");

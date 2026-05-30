@@ -5,7 +5,7 @@
 
 #include "diff_selector.h"
 #include "document_id.h"
-#include "item_id.h"
+#include "item.h"
 #include "it_file.h"
 #include "it_window.h"
 #include "map_id.h"
@@ -168,7 +168,7 @@ it_mod_list *create_iml_elements(int x, int y, int current_offset,
     // image of the Item ID button
     char image_filename[512] = {0};
     sprintf(image_filename, ".\\resources\\items\\%s.bmp",
-        item_name_from_id(items[id_offset]->item_id));
+        is_from_it(items[id_offset]->item_id));
     HBITMAP itemBitmap = (HBITMAP)LoadImage(GetModuleHandle(NULL),
         image_filename, IMAGE_BITMAP, 60, 60, LR_LOADFROMFILE
     );
@@ -195,14 +195,14 @@ it_mod_list *create_iml_elements(int x, int y, int current_offset,
     // Extra Info / Document ID
     char document_name[512] = {0};
 
-    if (items[id_offset]->item_id == MAP)
+    if (items[id_offset]->item_id == MAP_T)
     {
         sprintf(document_name, "%s", map_name_from_id(items[id_offset]->extra_info));
     }
-    else if (items[id_offset]->item_id == DOCUMENT
-        || items[id_offset]->item_id == PHOTO
-        || items[id_offset]->item_id == STATUETTE
-        || items[id_offset]->item_id == PIECE_OF_PAPER)
+    else if (items[id_offset]->item_id == DOCUMENT_T
+        || items[id_offset]->item_id == PHOTO_T
+        || items[id_offset]->item_id == STATUETTE_T
+        || items[id_offset]->item_id == PIECE_OF_PAPER_T)
     {
         sprintf(document_name, "%s", document_name_from_id(items[id_offset]->extra_info));
     }

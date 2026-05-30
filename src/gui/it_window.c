@@ -183,11 +183,11 @@ int check_extra_info_buttons_pressed(WPARAM wParam)
         }
 
         if (LOWORD(wParam) == p->extra_info_button_id
-            && (p->item->item_id == MAP
-            || p->item->item_id == DOCUMENT
-            || p->item->item_id == PHOTO
-            || p->item->item_id == STATUETTE
-            || p->item->item_id == PIECE_OF_PAPER))
+            && (p->item->item_id == MAP_T
+            || p->item->item_id == DOCUMENT_T
+            || p->item->item_id == PHOTO_T
+            || p->item->item_id == STATUETTE_T
+            || p->item->item_id == PIECE_OF_PAPER_T))
         {
             selected_item = p;
             // TODO: selected item should be a pointer of pointer

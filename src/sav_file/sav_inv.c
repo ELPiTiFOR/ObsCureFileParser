@@ -41,7 +41,7 @@ int parse_item(sav_inv_item *item, FILE *file)
     item->extra_info = extra_info;
 
     // Finding the Item ID
-    item->id = get_item_id_from_loc(it, item_loc);
+    item->id = get_item_type_from_loc(it, item_loc);
 
     return 0;
 }
@@ -118,7 +118,7 @@ int parse_item_inventory_section(sav_file *sav, FILE *file)
 /*
 ** GETTING
 */
-ssize_t index_of_item_with_id(sav_inv *inv, item_id id)
+ssize_t index_of_item_with_id(sav_inv *inv, item_type id)
 {
     for (size_t i = 0; i < inv->nb_items; i++)
     {
@@ -153,7 +153,7 @@ void update_item_at(sav_inv *inv, size_t index, sav_inv_item *item)
     inv->items[index] = *item;
 }
 
-int update_item_with_id(sav_inv *inv, item_id id, sav_inv_item *item)
+int update_item_with_id(sav_inv *inv, item_type id, sav_inv_item *item)
 {
     ssize_t index = index_of_item_with_id(inv, id);
     if (index == -1)
@@ -166,7 +166,7 @@ int update_item_with_id(sav_inv *inv, item_id id, sav_inv_item *item)
 }
 
 // TODO: be careful, this implementation might cause problems
-int add_item_to_inv(sav_inv *inv, item_id id, uint8_t amount)
+int add_item_to_inv(sav_inv *inv, item_type id, uint8_t amount)
 {
     ssize_t index = index_of_item_with_id(inv, id);
     sav_inv_item item = {0};
@@ -246,7 +246,7 @@ void serialize_item_inventory_section(sav_file *sav, FILE *file)
 
 void print_item(sav_inv_item *item)
 {
-    item_id id = item->id;
+    item_type id = item->id;
     printf("    ");
     if (sav_config && strcmp(get_config_value(sav_config, "verbose-print"), "true") == 0)
     {
@@ -255,18 +255,18 @@ void print_item(sav_inv_item *item)
     }
     else
     {
-        char *name = item_name_from_id(id);
+        char *name = is_from_it(id);
         printf("Item: %s", name);
     }
 
     putchar('\n');
     printf("    Quantity: %02X\n", item->quantity);
     printf("    Extra info: %08X", item->extra_info);
-    if (id == DOCUMENT || id == PHOTO)
+    if (id == DOCUMENT_T || id == PHOTO_T)
     {
         print_extra_info_doc(item->extra_info);
     }
-    else if (id == MAP)
+    else if (id == MAP_T)
     {
         print_extra_info_map(item->extra_info);
     }

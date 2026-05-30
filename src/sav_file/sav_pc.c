@@ -12,7 +12,7 @@
 
 #include "it_file.h"
 
-#include "item_id.h"
+#include "item.h"
 
 /*
 ** PARSING
@@ -28,7 +28,7 @@ int parse_weapon(sav_inv_weapon *weapon, FILE *file)
     weapon->extra_info = read_4byte_lsb(file, &r) & 0xFFFFFF00;
 
     // Finding the Item ID
-    weapon->id = get_item_id_from_loc(it, weapon->weapon_loc);
+    weapon->id = get_item_type_from_loc(it, weapon->weapon_loc);
 
     return 0;
 }
@@ -94,7 +94,7 @@ int parse_pcs(sav_file *sav, FILE *file)
 /*
 ** GETTING
 */
-ssize_t index_of_weapon_with_id(sav_pc_info *pc, item_id id)
+ssize_t index_of_weapon_with_id(sav_pc_info *pc, item_type id)
 {
     for (size_t i = 0; i < pc->nb_weapons; i++)
     {
@@ -129,7 +129,7 @@ void update_weapon_at(sav_pc_info *pc, size_t index, sav_inv_weapon* weapon)
     pc->weapons[index] = *weapon;
 }
 
-int update_weapon_with_id(sav_pc_info *pc, item_id id, sav_inv_weapon *weapon)
+int update_weapon_with_id(sav_pc_info *pc, item_type id, sav_inv_weapon *weapon)
 {
     ssize_t index = index_of_weapon_with_id(pc, id);
     if (index == -1)
@@ -142,7 +142,7 @@ int update_weapon_with_id(sav_pc_info *pc, item_id id, sav_inv_weapon *weapon)
 }
 
 // TODO: be careful, this implementation might cause problems
-int add_weapon_to_inv(sav_pc_info *pc, item_id id, uint8_t ammo)
+int add_weapon_to_inv(sav_pc_info *pc, item_type id, uint8_t ammo)
 {
     ssize_t index = index_of_weapon_with_id(pc, id);
     sav_inv_weapon weapon = {0};
@@ -218,7 +218,7 @@ void serialize_pcs(sav_file *sav, FILE *file)
 
 void print_weapon(sav_inv_weapon *weapon)
 {
-    item_id id = weapon->id;
+    item_type id = weapon->id;
     printf("        Weapon location: ");
     print_item_loc(weapon->weapon_loc, id);
     putchar('\n');
@@ -247,7 +247,7 @@ void print_pc_info(sav_pc_info *pc)
     printf("    Y pos: %f\n", pc->y_pos);
     printf("    Z pos: %f\n", pc->z_pos);
     printf("    Rotation: %hhu\n", pc->rot);
-    item_id id = get_item_id_from_loc(it, pc->curr_weapon_loc);
+    item_type id = get_item_type_from_loc(it, pc->curr_weapon_loc);
     printf("    Current weapon: ");
     print_item_loc(pc->curr_weapon_loc, id);
     putchar('\n');

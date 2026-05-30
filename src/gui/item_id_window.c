@@ -23,7 +23,7 @@ void create_item_ids_buttons(void)
             
             // image of the Item ID button
             char image_filename[512] = {0};
-            sprintf(image_filename, ".\\resources\\items\\%s.bmp", item_name_from_id(item_ids[j * 7 + i + 1]));
+            sprintf(image_filename, ".\\resources\\items\\%s.bmp", is_from_it(item_type_list[j * 7 + i + 1]));
             HBITMAP itemBitmap = (HBITMAP)LoadImage(GetModuleHandle(NULL),
                 image_filename, IMAGE_BITMAP, 60, 60, LR_LOADFROMFILE);
 
@@ -84,7 +84,7 @@ void check_all_item_buttons_pressed(WPARAM wParam)
                 printf("!given_item[0]\n");
             if (!given_item[0]->item)
                 printf("!given_item[0]->item\n");
-            given_item[0]->item->item_id = item_ids[i + 1];
+            given_item[0]->item->item_id = item_type_list[i + 1];
             // TODO: this will cause a problem if given_item is NULL
             if (!item_to_add || *given_item != item_to_add->next)
             {

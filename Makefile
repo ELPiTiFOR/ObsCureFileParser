@@ -14,7 +14,6 @@ CPPFLAGS = \
 	-Isrc/file_read \
 	-Isrc/file_write \
 	-Isrc/config \
-	-Isrc/obscure_ids \
 	-Isrc/obscure_ids/rooms_names \
 	-Isrc/my_crc \
 	-Isrc/correct_crc \
@@ -31,9 +30,6 @@ HEAD = \
 	src/sav_file/sav_pc.h \
 	src/hoe_file/hoe_file.h \
 	src/hoe_file/hoe_event.h \
-	src/obscure_ids/item_id.h \
-	src/obscure_ids/document_id.h \
-	src/obscure_ids/map_id.h \
 	src/obscure_ids/rooms_names/rooms_names.h \
 	src/file_read/file_read.h \
 	src/file_write/file_write.h \
@@ -47,7 +43,7 @@ HEAD = \
 LDFLAGS = -Llibs/
 LDLIBS = -lObsCureInfo
 
-CFLAGS = -std=c99 -g
+CFLAGS = -std=c99 #-g
 CFLAGS_GUI = -std=c99 -mwindows
 LDFLAGS_GUI = -lgdi32 -lole32 -luuid
 
@@ -61,9 +57,6 @@ SRC = \
 	src/sav_file/sav_pc.c \
 	src/hoe_file/hoe_file.c \
 	src/hoe_file/hoe_event.c \
-	src/obscure_ids/item_id.c \
-	src/obscure_ids/document_id.c \
-	src/obscure_ids/map_id.c \
 	src/obscure_ids/rooms_names/rooms_names.c \
 	src/file_read/file_read.c \
 	src/file_write/file_write.c \

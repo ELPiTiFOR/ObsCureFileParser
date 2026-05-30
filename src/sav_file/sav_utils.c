@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "item_id.h"
+#include "item.h"
 #include "document_id.h"
 #include "rooms_names.h"
 
@@ -23,12 +23,12 @@ void print_room_id(uint8_t room_id)
     free(name);
 }
 
-void print_item_loc(uint32_t item_loc, item_id id)
+void print_item_loc(uint32_t item_loc, item_type id)
 {
     printf("%06X | ", item_loc);
-    char *name = item_name_from_id(id);
+    char *name = is_from_it(id);
 
-    if (id == NO_ITEM_ID || strcmp(name, "NO_ITEM_ID") != 0)
+    if (id == NOITEM_T || name)
     {
         printf("Item name: %s", name/*, (uint32_t) id*/);
         return;
