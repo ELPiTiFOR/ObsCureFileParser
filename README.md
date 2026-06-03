@@ -104,6 +104,10 @@ before, so you'll need the `ObsCureInfo.dll` too. Although you won't need the
 ObsCureFileParser by yourself OR your own program uses the functions or other
 stuff defined in ObsCureInfo.
 
+# Versions
+The current version of ObsCureFileParser is v0.2.0, and it uses the v0.1.0 of
+ObsCureInfo.
+
 # More info
 For more info on ObsCure formats, types, etc, check
 [the documentation](https://elpitifor.github.io/ObsCureDocs).
