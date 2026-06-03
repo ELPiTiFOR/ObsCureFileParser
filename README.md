@@ -15,6 +15,9 @@ research is needed.
 There are also other possible actions, check the end of the "Usage" section.
 
 # Usage
+Note that, in order to work, ObsCureFileParser needs the
+[ObsCureInfo library](https://github.com/ELPiTiFOR/ObsCureInfo), so make sure
+you have the latter before trying to using the former.
 
 ## CLI
 To parse and view the contents of a file, here's the regex of the command:
@@ -94,6 +97,12 @@ the library. You should also think of using the `-I` option to specify where
 the header files are located (if you know about programming, you already know
 what I'm talking about). When releasing your program, remember to have the CSV
 and your own executable file in the same directory, as well as the DLL.
+
+Remember that ObsCureFileParser uses the ObsCureInfo library as mentioned
+before, so you'll need the `ObsCureInfo.dll` too. Although you won't need the
+`libObsCureInfo.dll.a` nor the header files UNLESS you want to compile
+ObsCureFileParser by yourself OR your own program uses the functions or other
+stuff defined in ObsCureInfo.
 
 # More info
 For more info on ObsCure formats, types, etc, check
