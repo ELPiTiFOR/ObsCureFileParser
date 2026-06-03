@@ -523,7 +523,7 @@ void replace_item_hoe_event(hoe_event *event, uint32_t uid, item_type item)
     size_t nb_args = event->nb_visible_args;
     for (size_t i = 0; i < nb_args; i++)
     {
-        if (args[i].uid != uid)
+        if (event->hoe_vars[args[i].uid].ivalue != uid)
         {
             continue;
         }
@@ -536,7 +536,7 @@ void replace_item_hoe_event(hoe_event *event, uint32_t uid, item_type item)
 
     for (size_t i = 0; i < nb_args; i++)
     {
-        if (args[i].uid != uid)
+        if (event->hoe_vars[args[i].uid].ivalue != uid)
         {
             continue;
         }
@@ -547,6 +547,11 @@ void replace_item_hoe_event(hoe_event *event, uint32_t uid, item_type item)
 
 void replace_item_hoe(hoe_file *hoe, uint32_t uid, item_type item)
 {
+    if (is_normalization_hoe_vars_needed(hoe))
+    {
+        normalize_hoe_vars(hoe);
+    }
+
     for (size_t i = 0; i < hoe->nb_chunks; i++)
     {
         if (hoe->chunks[i].type == HOE_EVENT)
@@ -554,4 +559,64 @@ void replace_item_hoe(hoe_file *hoe, uint32_t uid, item_type item)
             replace_item_hoe_event(hoe->chunks[i].content, uid, item);
         }
     }
+}
+
+int is_normalization_hoe_vars_with_args_needed(hoe_event *event,
+    ItSet_args *args, size_t nb_args, simple_map *map)
+{
+    for (size_t i = 0; i < nb_args; i++)
+    {
+        uint32_t uid = 0;
+        if (simple_value_from_key(map, args[i].type, &uid) ==
+            SIMPLE_MAP_SUCCESS)
+        {
+            if (uid != args[i].uid)
+            {
+                return 1;
+            } 
+        }
+        else
+        {
+            // associate
+            simple_add_pair(map, args[i].type, args[i].uid);
+        }
+    }
+
+    return 0;
+}
+
+int is_normalization_hoe_vars_event_needed(hoe_event *event)
+{
+    simple_map map;
+    map.nb_pairs = 0;
+    map.pairs = NULL;
+
+    if (is_normalization_hoe_vars_with_args_needed(event, event->visible_args,
+        event->nb_visible_args, &map))
+    {
+        return 1;
+    }
+    if (is_normalization_hoe_vars_with_args_needed(event, event->contained_args,
+        event->nb_contained_args, &map))
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+int is_normalization_hoe_vars_needed(hoe_file *hoe)
+{
+    for (size_t i = 0; i < hoe->nb_chunks; i++)
+    {
+        if (hoe->chunks[i].type == HOE_EVENT)
+        {
+            if (is_normalization_hoe_vars_event_needed(hoe->chunks[i].content))
+            {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
 }

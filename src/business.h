@@ -1,7 +1,10 @@
-#ifndef BUSINESS_H
-#define BUSINESS_H
+#ifndef BUSINESS_OCFP_H
+#define BUSINESS_OCFP_H
 
 #include <stddef.h>
+#include <stdint.h>
+
+#include "room.h"
 
 // it
 int parse_it_file_b(char **argv, size_t i);
@@ -24,6 +27,8 @@ int reserialize_sav_file_b(char **argv, size_t i);
 int parse_hoe_file_b(char **argv, size_t i);
 int reserialize_hoe_file_b(char **argv, size_t i);
 
+room_id find_item(uint8_t *obscure_path, uint32_t uid);
+
 int test(char **argv, size_t i);
 
-#endif /* !BUSINESS_H */
+#endif /* !BUSINESS_OCFP_H */

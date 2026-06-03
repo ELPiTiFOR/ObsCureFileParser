@@ -447,12 +447,62 @@ int iterate_through_hoe(char **argv, size_t i)
     }
 }
 
+room_id find_item(uint8_t *obscure_path, uint32_t uid)
+{
+    uint8_t path[512] = { 0 };
+    strcpy(path, obscure_path);
+    size_t og_len = strlen(path);
+
+    for (size_t i = 0; i < NB_ROOMS; i++)
+    {
+        strcat(path, "\\");
+        strcat(path, path_from_ri((room_id)i));
+        strcat(path, "\\");
+        strcat(path, ristr_from_ri((room_id)i));
+        size_t len_without_extension = strlen(path);
+        strcat(path, "_n.tm");
+        tm_file *tm = parse_tm_file(path);
+
+        for (size_t j = 0; j < tm->len_item_sections; j++)
+        {
+            if (tm->items[j].item_location == uid)
+            {
+                return (room_id)i;
+            }
+        }
+
+        free_tm_file(tm);
+
+        path[len_without_extension] = 0;
+        strcat(path, "_d.tm");
+        tm = parse_tm_file(path);
+
+        if (tm)
+        {
+            for (size_t j = 0; j < tm->len_item_sections; j++)
+            {
+                if (tm->items[j].item_location == uid)
+                {
+                    return (room_id)i;
+                }
+            }
+            free_tm_file(tm);
+        }
+
+        path[og_len] = 0;
+    }
+
+    return NOROOM;
+}
+
 int test(char **argv, size_t i)
 {
-    hoe_file *hoe = parse_hoe_file("C:\\SteamLibrary\\steamapps\\common\\Obscure\\data\\_levels\\a\\a003\\a003.hoe");
-    replace_item_hoe(hoe, 0x010181, ENERGY_DRINK);
-    print_hoe_file(hoe);
-    free_hoe_file(hoe);
+    room_id ri = find_item("C:\\SteamLibrary\\steamapps\\common\\Obscure", 0x0D0102);
+    if (ri == NOROOM)
+    {
+        printf("not found\n");
+    }
+    printf("Room: %s\n", ristr_from_ri(ri));
     // sav_file *sav = parse_sav_file("E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game1.sav");
     // if (!sav)
     // {

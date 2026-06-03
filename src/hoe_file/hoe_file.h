@@ -112,6 +112,7 @@ int serialize_hoe_file(hoe_file *hoe, uint8_t *path);
 void print_hoe_file(hoe_file *hoe);
 void free_hoe_file(hoe_file *hoe);
 void normalize_hoe_vars(hoe_file *hoe);
+int is_normalization_hoe_vars_needed(hoe_file *hoe);
 void replace_item_hoe(hoe_file *hoe, uint32_t uid, item_type item);
 
 #endif /* !HOE_FILE_H */

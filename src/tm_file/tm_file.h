@@ -5,6 +5,8 @@
 #include <stdio.h>
 
 #define ITEM_SECTION 8
+#define TM_COULD_NOT_OPEN_FILE 1
+#define TM_COULD_NOT_ALLOCATE 2
 
 // tm files
 
@@ -82,5 +84,9 @@ int serialize_tm_file(tm_file *tm, char *path);
 
 void print_tm_file(tm_file *tm);
 void free_tm_file(tm_file *tm);
+
+int get_tm_error(void);
+
+extern int tm_error;
 
 #endif // TM_FILE_H

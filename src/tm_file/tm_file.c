@@ -7,6 +7,13 @@
 #include "file_write.h"
 #include "utils.h"
 
+int tm_error = 0;
+
+int get_tm_error(void)
+{
+    return tm_error;
+}
+
 uint32_t get_first_number(FILE *file)
 {
     uint32_t res = 0;
@@ -318,14 +325,16 @@ tm_file *parse_tm_file(char *path)
     FILE *file = fopen(path, "r+b");
     if (!file)
     {
-        fprintf(stderr, "Couldn't open tm_file %s\n", path);
+        //fprintf(stderr, "Couldn't open tm_file %s\n", path);
+        tm_error = TM_COULD_NOT_OPEN_FILE;
         return NULL;
     }
 
     tm_file *tm = malloc(sizeof(tm_file));
     if (!tm)
     {
-        fprintf(stderr, "ERROR: Couldn't alloc tm\n");
+        //fprintf(stderr, "ERROR: Couldn't alloc tm\n");
+        tm_error = TM_COULD_NOT_ALLOCATE;
         fclose(file);
         return NULL;
     }
@@ -584,7 +593,7 @@ int serialize_tm_file(tm_file *tm, char *path)
     size_t len_sections = tm->len_sections;
 
     size_t i = 0;
-    while (i < len_sections && sections[i].type < 8)
+    while (i < len_sections && sections[i].type != 8 && sections[i].type != 0xA)
     {
         // serialize each section between 1 and 7
         serialize_generic_section(sections + i, new_file);
@@ -594,16 +603,16 @@ int serialize_tm_file(tm_file *tm, char *path)
     tm_item_section *items = tm->items;
     size_t len_item_sections = tm->len_item_sections;
 
-    for (size_t i = 0; i < len_item_sections; i++)
+    for (size_t h = 0; h < len_item_sections; h++)
     {
         // serialize all items (8)
-        serialize_item_section(items + i, new_file);
+        serialize_item_section(items + h, new_file);
     }
 
     for (size_t j = i; j < len_sections; j++)
     {
         // serialize each sections > 8
-        serialize_generic_section(sections + i, new_file);
+        serialize_generic_section(sections + j, new_file);
     }
 
     fclose(new_file);
