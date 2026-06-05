@@ -383,7 +383,12 @@ int parse_hoe_event(hoe_file *hoe, FILE *file)
     }
 
     event->nb_m1 = read_4byte_msb(file, &r);
-    fseek(file, event->nb_m1 * 4, SEEK_CUR);
+    event->m1 = calloc(event->nb_m1, sizeof(uint32_t));
+    for (size_t i = 0; i < event->nb_m1; i++)
+    {
+        event->m1[i] = read_4byte_msb(file, &r);
+    }
+
     size_t offset_til_end_of_event = search_end_of_event(file);
     event->bytecode = duplicate_content(file, offset_til_end_of_event);
     event->len_bytecode = offset_til_end_of_event;
@@ -458,7 +463,7 @@ int serialize_hoe_event(hoe_event *event, FILE *file)
     write_4byte_msb(file, event->nb_m1);
     for (size_t i = 0; i < event->nb_m1; i++)
     {
-        write_4byte_msb(file, 0xFFFFFFFF);
+        write_4byte_msb(file, event->m1[i]);
     }
 
     for (size_t i = 0; i < event->len_bytecode; i++)
@@ -558,6 +563,14 @@ void print_hoe_event_it_args(ItSet_args *args, size_t len, char *name,
     }
 }
 
+void print_hoe_m1(uint32_t *m1, size_t nb_m1)
+{
+    for (size_t i = 0; i < nb_m1; i++)
+    {
+        printf("    - 0x%08X\n", m1[i]);
+    }
+}
+
 void print_hoe_event(hoe_event *event)
 {
     printf("    Magic number: %f\n", event->magic_number);
@@ -584,6 +597,7 @@ void print_hoe_event(hoe_event *event)
     print_hoe_event_vars(event);
 
     printf("    Nb_m1: %d\n", event->nb_m1);
+    print_hoe_m1(event->m1, event->nb_m1);
 
     print_hoe_event_bytecode(event);
 

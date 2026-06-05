@@ -75,6 +75,7 @@ typedef struct
     hoe_var *hoe_vars;
 
     uint32_t nb_m1;
+    uint32_t *m1;
 
     size_t len_bytecode;
     uint8_t *bytecode;
