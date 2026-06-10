@@ -30,6 +30,7 @@ HEAD = \
 	src/sav_file/sav_pc.h \
 	src/hoe_file/hoe_file.h \
 	src/hoe_file/hoe_event.h \
+	src/hoe_file/hoe_bytecode.h \
 	src/obscure_ids/rooms_names/rooms_names.h \
 	src/file_read/file_read.h \
 	src/file_write/file_write.h \
@@ -57,6 +58,7 @@ SRC = \
 	src/sav_file/sav_pc.c \
 	src/hoe_file/hoe_file.c \
 	src/hoe_file/hoe_event.c \
+	src/hoe_file/hoe_bytecode.c \
 	src/obscure_ids/rooms_names/rooms_names.c \
 	src/file_read/file_read.c \
 	src/file_write/file_write.c \
@@ -87,6 +89,9 @@ SRC_GUI = \
 
 OBJ_GUI = ${SRC_GUI:.c=.o}
 
+SRC_TEST = $(SRC) test/main_test.c test/hoe_test.c
+OBJ_TEST = ${SRC_TEST:.c=.o}
+
 # Build CLI, GUI and DLL
 all: cli gui lib
 
@@ -114,7 +119,12 @@ ObsCureFileParser.dll: $(OBJ)
 	cp $(HEAD) lib\ObsCureFileParserHeader
 	cp "resources\Room IDs.csv" lib
 
+# Build testsuite
+test: $(OBJ_TEST)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+
 clean:
 	$(RM) ObsCureFileParser ObsCureFileParserGUI ObsCureFileParser.dll libObsCureFileParser.dll.a \
-	$(OBJ_GUI) $(OBJ_CLI) resources/resources.o
-	$(RM) -r lib
+	$(OBJ_GUI) $(OBJ_CLI) resources/resources.o \
+	$(OBJ_TEST) test.exe \
+	$(RM) -r lib \

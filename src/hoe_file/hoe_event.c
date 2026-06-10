@@ -8,11 +8,14 @@
 
 #include "file_read.h"
 #include "file_write.h"
+#include "hoe_bytecode.h"
 #include "lstring.h"
 
 size_t aux_offset = 0;
 
 int add_hoe_chunk(hoe_file *hoe);
+uint32_t read_4byte_char(uint8_t *bytecode, size_t *i);
+uint8_t read_1byte_char(uint8_t *bytecode, size_t *i);
 
 int is_lstring_char(uint8_t c)
 {
@@ -348,7 +351,7 @@ int parse_hoe_event(hoe_file *hoe, FILE *file)
 
     size_t offset_til_printable = 0;
     int is_lstrings = find_lstrings_or_end_of_event(file, &offset_til_printable);
-    
+
     event->is_lstrings = is_lstrings;
     if (!is_lstrings)
     {
@@ -486,19 +489,27 @@ void print_hoe_event_lstrings(hoe_event *event)
     }
 }
 
+void print_hoe_event_var(hoe_var *var)
+{
+    switch (var->type)
+    {
+    case HOE_INT:
+        printf("%d (0x%08X)", var->ivalue, var->ivalue);
+        break;
+    case HOE_FLOAT:
+        printf("%f", var->fvalue);
+        break;
+    }
+
+}
+
 void print_hoe_event_vars(hoe_event *event)
 {
     for (size_t i = 0; i < event->nb_hoe_vars; i++)
     {
-        switch (event->hoe_vars[i].type)
-        {
-        case HOE_INT:
-            printf("    - %d (0x%08X)\n", event->hoe_vars[i].ivalue, event->hoe_vars[i].ivalue);
-            break;
-        case HOE_FLOAT:
-            printf("    - %f\n", event->hoe_vars[i].fvalue);
-            break;
-        }
+        printf("    - ");
+        print_hoe_event_var(event->hoe_vars + i);
+        printf("\n");
     }
 }
 
@@ -522,6 +533,133 @@ void print_hoe_event_bytecode(hoe_event *event)
         {
             putchar('\n');
         }
+    }
+}
+
+void pretty_print_hoe_event_bytecode_push_old(hoe_event *event, uint8_t *bytecode,
+    size_t *i_p)
+{
+    printf("PUSH ");
+
+    size_t i = *i_p;
+    uint32_t integer = lsb_32(*(uint32_t *)(bytecode + i));
+    i += 4;
+    switch (integer)
+    {
+    case 1:
+        printf("immediate ");
+        integer = lsb_32(*(uint32_t *)(bytecode + i));
+        i += 4;
+        printf("%08X", integer);
+        break;
+    case 2:
+        printf("hoe_var ");
+        integer = lsb_32(*(uint32_t *)(bytecode + i));
+        i += 4;
+        printf("index: %08X value: ", integer);
+        print_hoe_event_var(event->hoe_vars + integer);
+        break;
+    case 4:
+        printf("fun ");
+        uint32_t len = lsb_32(*(uint32_t *)(bytecode + i));
+        i += 4;
+        for (size_t j = 0; j < len; j++)
+        {
+            putchar(bytecode[i + j]);
+        }
+        i += len;
+        printf("\n    (\n");
+        size_t nb_args = lsb_32(*(uint32_t *)(bytecode + i));
+        i += 4;
+        printf("        nb args: %d ", nb_args);
+        for (size_t j = 0; j < nb_args; j++)
+        {
+            size_t byte = bytecode[i];
+            printf("%02X (arg)\n        ", byte);
+            i++;
+            integer = lsb_32(*(uint32_t *)(bytecode + i));
+            i += 4;
+            if (integer == 0x65)
+            {
+                pretty_print_hoe_event_bytecode_push_old(event, bytecode, &i);
+            }
+            else
+            {
+                printf("%08X", integer);
+            }
+        }
+        printf("\n    )\n");
+        break;
+    case 8:
+        printf("string ");
+        uint32_t len_str = lsb_32(*(uint32_t *)(bytecode + i));
+        i += 4;
+        for (size_t j = 0; j < len_str; j++)
+        {
+            putchar(bytecode[i + j]);
+        }
+        i += len_str;
+        break;
+    default:
+        printf("%08X", integer);
+        //integer = lsb_32(*(uint32_t *)(bytecode + i));
+        break;
+    }
+
+    *i_p = i;
+    printf("\n");
+}
+
+void pretty_print_hoe_event_bytecode_old(hoe_event *event)
+{
+    uint8_t *bytecode = event->bytecode;
+    size_t len_bytecode = event->len_bytecode;
+
+    size_t i = 0;
+    while (i < len_bytecode)
+    {
+        printf("    ");
+        uint8_t byte = bytecode[i];
+        if (byte)
+        {
+            printf("%02X\n", byte);
+            i++;
+            continue;
+        }
+
+        uint32_t integer = lsb_32(*(uint32_t *)(bytecode + i));
+        i += 4;
+        switch (integer)
+        {
+        case 0x65:
+            pretty_print_hoe_event_bytecode_push_old(event, bytecode, &i);
+            break;
+        default:
+            printf("%08X\n", integer);
+            break;
+        }
+    }
+}
+
+void pretty_print_hoe_event_bytecode(hoe_event *event)
+{
+    uint8_t *bytecode = event->bytecode;
+    size_t len_bytecode = event->len_bytecode;
+
+    size_t i = 0;
+    uint32_t first_number = read_4byte_char(bytecode, &i);
+    if (first_number)
+    {
+        pretty_print_hoe_event_bytecode_old(event);
+        return;
+    }
+
+    print_hoelang_main(event, bytecode, &i, 1);
+
+    printf("\nStarting dirty print:\n");
+    while (i < len_bytecode)
+    {
+        printf("%08X\n", read_4byte_char(bytecode, &i));
     }
 }
 
@@ -600,6 +738,8 @@ void print_hoe_event(hoe_event *event)
     print_hoe_m1(event->m1, event->nb_m1);
 
     print_hoe_event_bytecode(event);
+    printf("Bytecode pretty:\n");
+    pretty_print_hoe_event_bytecode(event);
 
     if (event->nb_visible_args)
     {
