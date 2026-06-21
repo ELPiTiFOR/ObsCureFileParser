@@ -433,6 +433,78 @@ int print_hoelang_block(hoe_event *event, uint8_t *bytecode, size_t *i, int inde
     return 0;
 }
 
+int print_hoelang_sub_block(hoe_event *event, uint8_t *bytecode, size_t *i, int indentation);
+
+int print_hoelang_if(hoe_event *event, uint8_t *bytecode, size_t *i, int indentation, int type)
+{
+    int conditional = 0;
+    int extra_indentation = 0;
+    uint32_t nb_blocks = read_4byte_char(bytecode, i);
+    if (nb_blocks)
+        conditional = 1;
+
+    if (conditional)
+    {
+        extra_indentation += 1;
+        printf("if (");
+
+        // start of condition
+        for (size_t j = 0; j < nb_blocks; j++)
+        {
+            if (j)
+                printf(" && ");
+            if (j == nb_blocks - 1)
+            {
+                in_if = 1;
+            }
+
+            if (print_hoelang_block(event, bytecode, i, indentation + 1))
+            {
+                return 1;
+            }
+        }
+        printf(")\n");
+        print_indent(indentation);
+        printf("{");
+    }
+
+    in_if = 0;
+    nb_blocks = read_4byte_char(bytecode, i);
+
+    // start of if scope
+    for (size_t j = 0; j < nb_blocks; j++)
+    {
+        if (j == nb_blocks - 1)
+        {
+            in_then = 1;
+        }
+
+        if (conditional || j != 0)
+        {
+            putchar('\n');
+            print_indent(indentation + extra_indentation);
+        }
+        if (type == 1)
+        {
+            if (print_hoelang_block(event, bytecode, i, indentation + extra_indentation))
+                return 1;
+        }
+        else if (type == 2)
+        {
+            if (print_hoelang_sub_block(event, bytecode, i, indentation + extra_indentation))
+                return 1;
+        }
+    }
+
+    in_then = 0;
+    if (conditional)
+    {
+        putchar('\n');
+        print_indent(indentation);
+        printf("}");
+    }
+}
+
 int print_hoelang_main(hoe_event *event, uint8_t *bytecode, size_t *i, int indentation);
 
 int print_hoelang_sub_block(hoe_event *event, uint8_t *bytecode, size_t *i, int indentation)
@@ -441,95 +513,10 @@ int print_hoelang_sub_block(hoe_event *event, uint8_t *bytecode, size_t *i, int 
     switch (sub_block_marker)
     {
     case 1:
-        printf("if (");
-        uint32_t nb_blocks = read_4byte_char(bytecode, i);
-
-        // start of condition
-        if (!nb_blocks)
-            printf("true");
-        for (size_t j = 0; j < nb_blocks; j++)
-        {
-            if (j)
-                printf(" && ");
-            if (j == nb_blocks - 1)
-            {
-                in_if = 1;
-            }
-
-            if (print_hoelang_block(event, bytecode, i, indentation + 1))
-            {
-                return 1;
-            }
-        }
-
-        in_if = 0;
-        printf(")\n");
-        print_indent(indentation);
-        printf("{\n");
-        nb_blocks = read_4byte_char(bytecode, i);
-
-        // start of if scope
-        for (size_t j = 0; j < nb_blocks; j++)
-        {
-            if (j == nb_blocks - 1)
-            {
-                in_then = 1;
-            }
-
-            print_indent(indentation + 1);
-            if (print_hoelang_block(event, bytecode, i, indentation + 1))
-                return 1;
-            putchar('\n');
-        }
-
-        in_then = 0;
-        print_indent(indentation);
-        printf("}");
+        print_hoelang_if(event, bytecode, i, indentation, 1);
         break;
     case 2:
-        printf("if (");
-        nb_blocks = read_4byte_char(bytecode, i);
-
-        // start of condition
-        if (!nb_blocks)
-            printf("true");
-        for (size_t j = 0; j < nb_blocks; j++)
-        {
-            if (j)
-                printf(" && ");
-            if (j == nb_blocks - 1)
-            {
-                in_if = 1;
-            }
-
-            if (print_hoelang_block(event, bytecode, i, indentation + 1))
-            {
-                return 1;
-            }
-        }
-
-        in_if = 0;
-        printf(")\n");
-        print_indent(indentation);
-        printf("{\n");
-        nb_blocks = read_4byte_char(bytecode, i);
-
-        // start of if scope
-        for (size_t j = 0; j < nb_blocks; j++)
-        {
-            if (j == nb_blocks - 1)
-            {
-                in_then = 1;
-            }
-
-            print_indent(indentation + 1);
-            if (print_hoelang_sub_block(event, bytecode, i, indentation + 1))
-                return 1;
-            putchar('\n');
-        }
-        in_then = 0;
-        print_indent(indentation);
-        printf("}");
+        print_hoelang_if(event, bytecode, i, indentation, 2);
         break;
     default:
         printf("??? unknown %02X sub block", sub_block_marker);
