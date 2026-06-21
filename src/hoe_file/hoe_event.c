@@ -10,6 +10,7 @@
 #include "file_write.h"
 #include "hoe_bytecode.h"
 #include "lstring.h"
+#include "general.h"
 
 size_t aux_offset = 0;
 
@@ -494,7 +495,42 @@ void print_hoe_event_var(hoe_var *var)
     switch (var->type)
     {
     case HOE_INT:
-        printf("%d (0x%08X)", var->ivalue, var->ivalue);
+
+        int is_its = 0;
+        int is_item_uid = 0;
+        int i;
+        for (i = 0; i < NB_ITEMS; i++)
+        {
+            if (var->ivalue == item_type_short_list[i])
+            {
+                is_its = 1;
+            }
+        }
+        if (i == NB_ITEMS)
+        {
+            for (int i = 0; i < NB_ITEM_UIDS; i++)
+            {
+                if (var->ivalue == item_uid_list[i])
+                {
+                    is_item_uid = 1;
+                }
+            }
+        }
+
+        if (is_its)
+        {
+            printf("%s", is_from_its(var->ivalue));
+        }
+        else if (is_item_uid)
+        {
+            printf("0x%08X", var->ivalue);
+        }
+        else
+        {
+            printf("%d", var->ivalue);
+            if (is_some_id(var->ivalue))
+                printf(" (0x%08X)", var->ivalue);
+        }
         break;
     case HOE_FLOAT:
         printf("%f", var->fvalue);
@@ -641,26 +677,51 @@ void pretty_print_hoe_event_bytecode_old(hoe_event *event)
     }
 }
 
-void pretty_print_hoe_event_bytecode(hoe_event *event)
+int pretty_print_hoe_event_bytecode(hoe_event *event)
 {
     uint8_t *bytecode = event->bytecode;
     size_t len_bytecode = event->len_bytecode;
+    if (!bytecode)
+    {
+        printf("No bytecode to print!");
+        return 0;
+    }
+
+    int read_everything_correctly = 1;
 
     size_t i = 0;
     uint32_t first_number = read_4byte_char(bytecode, &i);
-    if (first_number)
+    // if (first_number)
+    // {
+    //     pretty_print_hoe_event_bytecode_old(event);
+    //     return;
+    // }
+    if (first_number == 1)
     {
-        pretty_print_hoe_event_bytecode_old(event);
-        return;
+        print_hoelang_mask(event, bytecode, &i, 1);
+
+        // we ignore this one cause I don't know what it means
+        // first_number = read_4byte_char(bytecode, &i);
     }
 
-    print_hoelang_main(event, bytecode, &i, 1);
+    if (print_hoelang_main(event, bytecode, &i, 1))
+    {
+        return 1;
+    }
+
+    if (i >= len_bytecode)
+    {
+        return 0;
+    }
 
     printf("\nStarting dirty print:\n");
+
     while (i < len_bytecode)
     {
         printf("%08X\n", read_4byte_char(bytecode, &i));
     }
+
+    return 1;
 }
 
 void print_hoe_uk_content(hoe_event *event)
@@ -737,19 +798,20 @@ void print_hoe_event(hoe_event *event)
     printf("    Nb_m1: %d\n", event->nb_m1);
     print_hoe_m1(event->m1, event->nb_m1);
 
-    print_hoe_event_bytecode(event);
-    printf("Bytecode pretty:\n");
+    // print_hoe_event_bytecode(event);
+    printf("    ```\n");
     pretty_print_hoe_event_bytecode(event);
+    printf("    ```\n");
 
-    if (event->nb_visible_args)
-    {
-        print_hoe_event_it_args(event->visible_args, event->nb_visible_args, 
-            "ItSetVisible", event);
-    }
+    // if (event->nb_visible_args)
+    // {
+    //     print_hoe_event_it_args(event->visible_args, event->nb_visible_args, 
+    //         "ItSetVisible", event);
+    // }
 
-    if (event->nb_contained_args)
-    {
-        print_hoe_event_it_args(event->contained_args, event->nb_contained_args,
-            "ItSetContained", event);
-    }
+    // if (event->nb_contained_args)
+    // {
+    //     print_hoe_event_it_args(event->contained_args, event->nb_contained_args,
+    //         "ItSetContained", event);
+    // }
 }

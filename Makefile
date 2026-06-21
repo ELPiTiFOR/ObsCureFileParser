@@ -127,4 +127,5 @@ clean:
 	$(RM) ObsCureFileParser ObsCureFileParserGUI ObsCureFileParser.dll libObsCureFileParser.dll.a \
 	$(OBJ_GUI) $(OBJ_CLI) resources/resources.o \
 	$(OBJ_TEST) test.exe \
+	*.hoe.txt \
 	$(RM) -r lib \

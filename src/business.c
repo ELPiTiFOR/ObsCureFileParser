@@ -8,6 +8,7 @@
 #include "sav_file.h"
 #include "hoe_file.h"
 #include "hoe_event.h"
+#include "hoe_bytecode.h"
 #include "utils.h"
 #include "room.h"
 #include "item.h"
@@ -399,21 +400,13 @@ int iterate_through_hoe(char **argv, size_t i)
     strcpy(hoe_path, "E:\\Fran\\OBSCURE\\Game Data\\Testing ground\\");
     size_t og_len = strlen(hoe_path);
 
-    // char *str1 = "TM_ItSetVisible";
-    // size_t len1 = strlen(str1);
-    char *str1 = "\x00\x00\x00\xD0";
-    size_t len1 = 4; //strlen(str1);
+    int nb_errors = 0;
+    int nb_events = 0;
 
-    // char *str2 = "TM_ItSetContained";
-    // size_t len2 = strlen(str2);
-    char *str2 = "\x00\x00\x00\xC9";
-    size_t len2 = 4; //strlen(str1);
-
-    room_id min_room = 0;
-    size_t min_len = 10000000;
-
+    // for each room
     for (int i = 0; i < NB_ROOMS; i++)
     {
+        // we check the HOE file
         strcat(hoe_path, path_from_ri((room_id)i));
         strcat(hoe_path, "\\");
         strcat(hoe_path, ristr_from_ri((room_id)i));
@@ -421,84 +414,31 @@ int iterate_through_hoe(char **argv, size_t i)
         hoe_file *hoe = parse_hoe_file(hoe_path);
         printf("Checking %s\n", hoe_path);
 
+        // for each chunk
         for (size_t j = 0; j < hoe->nb_chunks; j++)
         {
+            // if it is an event
             if (hoe->chunks[j].type == HOE_EVENT)
             {
                 hoe_event *event = hoe->chunks[j].content;
+                nb_events++;
                 char event_name[512] = {0};
                 for (size_t a = 0; a < event->name.length; a++)
                 {
                     event_name[a] = event->name.content[a];
                 }
 
-                printf("    %s:\n", event_name);
-                for (size_t i = 0; i < event->len_bytecode && i < 16; i++)
+                int err = pretty_print_hoe_event_bytecode(event);
+                if (err)
                 {
-                    printf("%02X ", event->bytecode[i]);
+                    fprintf(stderr, "    ERROR: %d/%d while reading %s in %s\n", ++nb_errors, nb_events, event_name, hoe_path);
                 }
-                putchar('\n');
-
-                // if (event->len_bytecode && event->len_bytecode < min_len
-                //     && strcmp("f002", ristr_from_ri(i)) != 0
-                //     && strcmp("g100", ristr_from_ri(i)) != 0
-                //     && strcmp("m000", ristr_from_ri(i)) != 0
-                //     && strcmp("m100", ristr_from_ri(i)) != 0
-                //     && strcmp("g016", ristr_from_ri(i)) != 0
-                // )
-                // {
-                //     min_len = event->len_bytecode;
-                //     min_room = i;
-                // }
-                // else
-                // {
-                //     // printf("len_bytecode (%zu) >= min_len (%zu)\n", event->len_bytecode, min_len);
-                // }
-
-                // if (event->nb_uk_ints != 0)
-                // {
-                //     printf("In %s:\n", event_name);
-                //     print_hoe_uk_ints(event);
-                // }
-                /*
-                char *to_search = "cin";
-                if (strstr(event_name, to_search))
-                {
-                    printf("\"%s\" found in %s at %s with %d\n", to_search, event_name, hoe_path, event->nb_uk_ints);
-                    // print_hoe_event(event);
-                }
-                */
-                // size_t found_index = 0;
-                // if ((found_index = search_in_array(event->bytecode, event->len_bytecode, str2,
-                //     len2)) != event->len_bytecode
-                //     && (search_in_array(event->bytecode, event->len_bytecode, str1, len1) == event->len_bytecode)
-                // )
-                // {
-                //     printf("    Found str2 in %s in %s\n", hoe_path, event_name);
-                //     // uint32_t type = lsb_32(*(uint32_t *)(event->bytecode + found_index + len1 + 0xd));
-                //     // uint32_t uid = lsb_32(*(uint32_t *)(event->bytecode + found_index + len1 + 0x1a));
-                //     // type = event->hoe_vars[type].ivalue;
-                //     // uid = event->hoe_vars[uid].ivalue;
-                //     // printf("        type = %08X, uid = %08X\n", type, uid);
-                // }
-                // if ((found_index = search_in_array(event->bytecode, event->len_bytecode, str2,
-                //     len2)) != event->len_bytecode)
-                // {
-                //     printf("    Found %s in %s\n", str2, hoe_path);
-                //     uint32_t type = lsb_32(*(uint32_t *)(event->bytecode + found_index + len2 + 0xd));
-                //     uint32_t uid = lsb_32(*(uint32_t *)(event->bytecode + found_index + len2 + 0x1a));
-                //     type = event->hoe_vars[type].ivalue;
-                //     uid = event->hoe_vars[uid].ivalue;
-                //     printf("        type = %08X, uid = %08X\n", type, uid);
-                // }
             }
         }
 
         free_hoe_file(hoe);
         hoe_path[og_len] = 0;
     }
-
-    printf("min_room: %s, %zu\n", ristr_from_ri(min_room), min_len);
 }
 
 room_id find_item(uint8_t *obscure_path, uint32_t uid)
@@ -552,30 +492,4 @@ room_id find_item(uint8_t *obscure_path, uint32_t uid)
 int test(char **argv, size_t i)
 {
     iterate_through_hoe(argv, i);
-    // room_id ri = find_item("C:\\SteamLibrary\\steamapps\\common\\Obscure", 0x0D0102);
-    // if (ri == NOROOM)
-    // {
-    //     printf("not found\n");
-    // }
-    // printf("Room: %s\n", ristr_from_ri(ri));
-    // sav_file *sav = parse_sav_file("E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game1.sav");
-    // if (!sav)
-    // {
-    //     fprintf(stderr, "ERROR: Couldn't parse sav file\n");
-    //     return 1;
-    // }
-
-    // sav->pcs[KENNY_PC_INDEX].room = 0x19;
-
-    //add_item(sav, MEDKIT, 100);
-    /*
-    if (add_weapon(sav, JOSH_PC_INDEX, POWERFUL_FLASHLIGHT, 100))
-    {
-        printf("something went wrong my boy\n");
-    }
-    */
-    //sav->diff_mode = 0x01;
-    //sav->shotgun_ammo = 2000;
-    //sav->handgun_ammo = 2000;
-    //serialize_sav_file(sav, "E:\\Archivos de programa (x86)\\Steam\\userdata\\449564145\\254460\\remote\\game1.sav");
 }
